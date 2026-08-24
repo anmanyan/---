@@ -242,7 +242,7 @@ th:first-child,td:first-child{text-align:left}
 
     <div class="grid">
       <div class="metric"><div class="k">月末売上予測</div><div class="v" id="forecast">--</div><div class="small" id="forecastConfidence">予測データなし</div></div>
-      <div class="metric"><div class="k">利益予測</div><div class="v" id="profitForecast">¥0</div></div>
+      <div class="metric"><div class="k">概算利益予測</div><div class="v" id="profitForecast">¥0</div></div>
       <div class="metric"><div class="k">実原価率</div><div class="v" id="actualCostRate">--</div></div>
       <div class="metric"><div class="k">FL比率</div><div class="v" id="flRate">--</div></div>
     </div>
@@ -306,6 +306,7 @@ th:first-child,td:first-child{text-align:left}
       <div class="summaryline"><span>粗利益</span><b id="aGrossProfit">--</b></div>
       <div class="summaryline"><span>人件費率</span><b id="aLaborRate">--</b></div>
       <div class="summaryline"><span>FL比率</span><b id="aFL">--</b></div>
+      <div class="summaryline"><span>毎月経費計</span><b id="aMonthlyCosts">--</b></div>
       <div class="summaryline"><span>営業利益</span><b id="aProfit">--</b></div>
       <div class="summaryline"><span>借入返済後の資金余力</span><b id="aCashAfterDebt">--</b></div>
     </div>
@@ -317,6 +318,26 @@ th:first-child,td:first-child{text-align:left}
       <label>月まとめ仕入（請求書分など）</label><input type="number" inputmode="numeric" id="monthlyExtraPurchase" placeholder="0">
       <label>月末棚卸</label><input type="number" inputmode="numeric" id="closingStock" placeholder="0">
       <label>月間人件費（給与実額・任意）</label><input type="number" inputmode="numeric" id="monthlyLabor" placeholder="0">
+
+      <div class="section-title" style="margin-top:20px">この月の毎月経費</div>
+      <div class="small">空欄なら「設定」の通常額を使います。請求額が確定した月だけ実額を入れればOKです。</div>
+      <div class="row">
+        <div><label>家賃</label><input type="number" inputmode="numeric" id="mRent" placeholder="通常額"></div>
+        <div><label>リース</label><input type="number" inputmode="numeric" id="mLease" placeholder="通常額"></div>
+      </div>
+      <div class="row">
+        <div><label>電気</label><input type="number" inputmode="numeric" id="mElectricity" placeholder="通常額"></div>
+        <div><label>ガス</label><input type="number" inputmode="numeric" id="mGas" placeholder="通常額"></div>
+      </div>
+      <div class="row">
+        <div><label>水道</label><input type="number" inputmode="numeric" id="mWater" placeholder="通常額"></div>
+        <div><label>保険</label><input type="number" inputmode="numeric" id="mInsurance" placeholder="通常額"></div>
+      </div>
+      <div class="row">
+        <div><label>通信・システム</label><input type="number" inputmode="numeric" id="mCommunication" placeholder="通常額"></div>
+        <div><label>その他毎月経費</label><input type="number" inputmode="numeric" id="mOtherMonthlyCost" placeholder="通常額"></div>
+      </div>
+      <label>この月の借入返済</label><input type="number" inputmode="numeric" id="mLoan" placeholder="通常額">
       <button class="primary" id="saveMonthly">月次データを保存</button>
     </div>
 
@@ -336,8 +357,26 @@ th:first-child,td:first-child{text-align:left}
         <div><label>目標原価率（%）</label><input type="number" id="targetCostRate" value="32" step="0.1"></div>
         <div><label>目標人件費率（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
       </div>
-      <label>月間固定費（家賃・リース・保険等）</label><input type="number" id="fixed" value="285000">
-      <label>借入返済（月額）※営業利益とは別管理</label><input type="number" id="loan" value="90000">
+      <div class="section-title" style="margin-top:18px">毎月経費の通常額</div>
+      <div class="small">月ごとの実額を入れない場合、ここに登録した通常額で利益予測します。</div>
+      <div class="row">
+        <div><label>家賃</label><input type="number" id="rent" value="0"></div>
+        <div><label>リース</label><input type="number" id="lease" value="0"></div>
+      </div>
+      <div class="row">
+        <div><label>電気</label><input type="number" id="electricity" value="0"></div>
+        <div><label>ガス</label><input type="number" id="gas" value="0"></div>
+      </div>
+      <div class="row">
+        <div><label>水道</label><input type="number" id="water" value="0"></div>
+        <div><label>保険</label><input type="number" id="insurance" value="0"></div>
+      </div>
+      <div class="row">
+        <div><label>通信・システム</label><input type="number" id="communication" value="0"></div>
+        <div><label>その他毎月経費</label><input type="number" id="otherMonthlyCost" value="0"></div>
+      </div>
+      <label>借入返済（月額）</label><input type="number" id="loan" value="90000">
+      <div class="small">借入元金の返済は営業利益の経費には含めず、「返済後の資金余力」で別に確認します。</div>
       <button class="primary" id="saveSettings">設定を保存</button>
     </div>
 
@@ -379,10 +418,16 @@ const KEY='restaurant-profit-navi-v3';
 const defaultState={
   days:{},
   months:{},
-  settings:{goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,fixed:285000,loan:90000},
+  settings:{goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,rent:0,lease:0,electricity:0,gas:0,water:0,insurance:0,communication:0,otherMonthlyCost:285000,loan:90000},
   meta:{seenIntro:false}
 };
 let state=load();
+if(state.settings.fixed!=null && state.settings.otherMonthlyCost==null){
+  state.settings.otherMonthlyCost=Number(state.settings.fixed||0);
+}
+['rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost'].forEach(k=>{
+  if(state.settings[k]==null) state.settings[k]=0;
+});
 const $=id=>document.getElementById(id);
 const todayPill=$('todayPill');
 const date=$('date');
@@ -410,12 +455,22 @@ const aActualCostRate=$('aActualCostRate');
 const aGrossProfit=$('aGrossProfit');
 const aLaborRate=$('aLaborRate');
 const aFL=$('aFL');
+const aMonthlyCosts=$('aMonthlyCosts');
 const aProfit=$('aProfit');
 const aCashAfterDebt=$('aCashAfterDebt');
 const openingStock=$('openingStock');
 const monthlyExtraPurchase=$('monthlyExtraPurchase');
 const closingStock=$('closingStock');
 const monthlyLabor=$('monthlyLabor');
+const mRent=$('mRent');
+const mLease=$('mLease');
+const mElectricity=$('mElectricity');
+const mGas=$('mGas');
+const mWater=$('mWater');
+const mInsurance=$('mInsurance');
+const mCommunication=$('mCommunication');
+const mOtherMonthlyCost=$('mOtherMonthlyCost');
+const mLoan=$('mLoan');
 const monthlyAdvice=$('monthlyAdvice');
 const todayTotal=$('todayTotal');
 const saveDay=$('saveDay');
@@ -432,7 +487,14 @@ const saveMonthly=$('saveMonthly');
 const goal=$('goal');
 const targetCostRate=$('targetCostRate');
 const targetLaborRate=$('targetLaborRate');
-const fixed=$('fixed');
+const rent=$('rent');
+const lease=$('lease');
+const electricity=$('electricity');
+const gas=$('gas');
+const water=$('water');
+const insurance=$('insurance');
+const communication=$('communication');
+const otherMonthlyCost=$('otherMonthlyCost');
 const loan=$('loan');
 const monthlyOpenDays=$('monthlyOpenDays');
 const saveSettings=$('saveSettings');
@@ -475,6 +537,21 @@ function num(id){return Number(document.getElementById(id).value||0)}
 function daysForMonth(month){return Object.entries(state.days).filter(([d])=>d.startsWith(month)).sort(([a],[b])=>a.localeCompare(b))}
 function previousMonth(month){const [y,m]=month.split('-').map(Number);const d=new Date(y,m-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
 
+const monthlyCostKeys=['rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost'];
+function defaultMonthlyCosts(){
+  return monthlyCostKeys.reduce((sum,k)=>sum+Number(state.settings[k]||0),0);
+}
+function monthlyCostDetail(month){
+  const md=state.months[month]||{};
+  const costs=md.costs||{};
+  const values={};
+  monthlyCostKeys.forEach(k=>{
+    values[k]=(costs[k]===null || costs[k]===undefined || costs[k]==='') ? Number(state.settings[k]||0) : Number(costs[k]||0);
+  });
+  const loan=(md.loan===null || md.loan===undefined || md.loan==='') ? Number(state.settings.loan||0) : Number(md.loan||0);
+  const total=monthlyCostKeys.reduce((sum,k)=>sum+values[k],0);
+  return {values,total,loan};
+}
 function calcMonth(month){
   const rows=daysForMonth(month);
   let sales=0,cash=0,customers=0,dailyPurchases=0,laborActual=0,waste=0;
@@ -486,6 +563,7 @@ function calcMonth(month){
     laborActual+=x.laborDay||0;
     waste+=x.waste||0;
   });
+
   const md=state.months[month]||{};
   const prev=state.months[previousMonth(month)]||{};
   const openingStock=Number(md.openingStock ?? prev.closingStock ?? 0);
@@ -493,18 +571,27 @@ function calcMonth(month){
   const closingStock=Number(md.closingStock||0);
   const totalPurchases=dailyPurchases+extraPurchase;
   const hasStockData=(openingStock>0 || closingStock>0 || md.stockConfirmed);
-  const actualCost=hasStockData ? openingStock+totalPurchases-closingStock : null;
-  const actualCostRate=(hasStockData&&sales>0) ? actualCost/sales*100 : null;
-  const grossProfit=(hasStockData) ? sales-actualCost : null;
+  const actualCost=hasStockData ? Math.max(0,openingStock+totalPurchases-closingStock) : null;
+  const actualCostRate=(actualCost!=null&&sales>0) ? actualCost/sales*100 : null;
+  const grossProfit=(actualCost!=null) ? sales-actualCost : null;
+
   const monthlyLabor=Number(md.monthlyLabor||0);
   const labor=monthlyLabor>0 ? monthlyLabor : laborActual;
   const laborRate=sales>0 ? labor/sales*100 : null;
   const flRate=(actualCostRate!=null && laborRate!=null) ? actualCostRate+laborRate : null;
-  const profit=(actualCost!=null) ? sales-actualCost-labor-state.settings.fixed : null;
-  const cashAfterDebt=(profit!=null) ? profit-state.settings.loan : null;
+
+  const mc=monthlyCostDetail(month);
+  const profit=(actualCost!=null) ? sales-actualCost-labor-mc.total : null;
+  const cashAfterDebt=(profit!=null) ? profit-mc.loan : null;
   const purchaseRate=sales>0 ? totalPurchases/sales*100 : 0;
   const avgSpend=customers ? sales/customers : 0;
-  return {month,rows,sales,cash,customers,dailyPurchases,extraPurchase,totalPurchases,openingStock,closingStock,hasStockData,actualCost,actualCostRate,grossProfit,labor,laborRate,flRate,profit,cashAfterDebt,purchaseRate,avgSpend,waste};
+
+  return {
+    month,rows,sales,cash,customers,dailyPurchases,extraPurchase,totalPurchases,
+    openingStock,closingStock,hasStockData,actualCost,actualCostRate,grossProfit,
+    labor,laborRate,flRate,monthlyCosts:mc.total,monthlyCostValues:mc.values,loan:mc.loan,
+    profit,cashAfterDebt,purchaseRate,avgSpend,waste
+  };
 }
 function currentForecast(){
   const m=ym(today),s=calcMonth(m);
@@ -514,7 +601,7 @@ function currentForecast(){
   const forecast=enteredSalesDays>0 ? avgSalesPerEnteredDay*assumedOpenDays : null;
   const estimatedCost=forecast==null ? null : forecast*state.settings.targetCostRate/100;
   const estimatedLabor=forecast==null ? null : forecast*state.settings.targetLaborRate/100;
-  const profitForecast=forecast==null ? null : forecast-estimatedCost-estimatedLabor-state.settings.fixed;
+  const profitForecast=forecast==null ? null : forecast-estimatedCost-estimatedLabor-defaultMonthlyCosts();
   const confidence=enteredSalesDays>=8 ? '高' : enteredSalesDays>=3 ? '中' : enteredSalesDays>=1 ? '低' : 'なし';
   return {...s,forecast,profitForecast,enteredSalesDays,assumedOpenDays,avgSalesPerEnteredDay,confidence};
 }
@@ -573,8 +660,8 @@ function renderHome(){
   forecastConfidence.textContent=s.enteredSalesDays===0
     ? '予測データなし'
     : `予測精度：${s.confidence}（${s.enteredSalesDays}営業日分 / 想定${s.assumedOpenDays}日）`;
-  actualCostRate.textContent=s.actualCostRate==null ? '月末棚卸後' : pct(s.actualCostRate);
-  flRate.textContent=s.flRate==null ? '月末確定' : pct(s.flRate);
+  actualCostRate.textContent=s.actualCostRate==null ? '棚卸入力後' : pct(s.actualCostRate);
+  flRate.textContent=s.flRate==null ? '原価・人件費入力後' : pct(s.flRate);
 
   const prev=calcMonth(previousMonth(ym(today)));
   cmpSales.innerHTML=deltaText(s.sales,prev.sales);
@@ -584,15 +671,20 @@ function renderHome(){
 
   let msg='まずは今日の売上と仕入を入力してください。',cls='notice good';
   if(s.enteredSalesDays===1){
-    msg=`まず1営業日分のデータを確認しました。まだ良し悪しは判断しません。あと2営業日ほど入力すると、月末予測の精度が上がります。`;
+    msg='まず1営業日分のデータを確認しました。まだ良し悪しは判断しません。あと2営業日ほど入力すると、月末予測の精度が上がります。';
     cls='notice good';
   }else if(s.enteredSalesDays===2){
-    msg=`2営業日分のデータがあります。まだ断定せず、次の営業日まで傾向を見ます。現在の月末予測は ${yen(s.forecast)} ですが参考値です。`;
+    msg=`2営業日分のデータがあります。まだ断定せず、次の営業日まで傾向を見ます。現在の月末予測 ${yen(s.forecast)} は参考値です。`;
     cls='notice good';
   }else if(s.enteredSalesDays>=3){
-    if(s.forecast < goal*0.9){
-      msg=`${s.enteredSalesDays}営業日平均では月末 ${yen(s.forecast)} の予測です。目標との差が大きめなので、客数と客単価を順番に確認しましょう。`;
-      cls='notice bad';
+    if(goal>0 && s.forecast < goal*0.9){
+      if(s.enteredSalesDays<8){
+        msg=`${s.enteredSalesDays}営業日平均では月末 ${yen(s.forecast)} の予測です。目標より低い傾向ですが、まだ予測精度は「${s.confidence}」です。もう少しデータを見ながら客数と客単価を確認しましょう。`;
+        cls='notice';
+      }else{
+        msg=`${s.enteredSalesDays}営業日平均では月末 ${yen(s.forecast)} の予測です。目標との差が続いているため、客数と客単価を順番に確認しましょう。`;
+        cls='notice bad';
+      }
     }else if(s.purchaseRate>state.settings.targetCostRate+5){
       msg=`仕入率が ${pct(s.purchaseRate)} と高めです。月末棚卸前なので原価率とは別ですが、仕入過多や在庫増加がないか確認してください。`;
       cls='notice';
@@ -601,7 +693,8 @@ function renderHome(){
       cls='notice good';
     }
   }
-  advice.textContent=msg; advice.className=cls;
+  advice.textContent=msg;
+  advice.className=cls;
 
   miniChart.innerHTML='';
   const last=s.rows.slice(-14);
@@ -633,6 +726,16 @@ function renderAnalysis(){
   monthlyExtraPurchase.value=md.monthlyExtraPurchase||0;
   closingStock.value=md.closingStock||0;
   monthlyLabor.value=md.monthlyLabor||0;
+  const costs=md.costs||{};
+  mRent.value=costs.rent ?? '';
+  mLease.value=costs.lease ?? '';
+  mElectricity.value=costs.electricity ?? '';
+  mGas.value=costs.gas ?? '';
+  mWater.value=costs.water ?? '';
+  mInsurance.value=costs.insurance ?? '';
+  mCommunication.value=costs.communication ?? '';
+  mOtherMonthlyCost.value=costs.otherMonthlyCost ?? '';
+  mLoan.value=md.loan ?? '';
 
   let msg='月次データを入れると診断します。',cls='notice good';
   if(s.sales>0){
@@ -679,10 +782,10 @@ saveMonthly.onclick=()=>{
   persist(); renderAnalysis(); renderHome(); showToast('月次データを保存しました');
 };
 function loadSettingsUI(){
-  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','fixed','loan'].forEach(k=>document.getElementById(k).value=state.settings[k]);
+  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost','loan'].forEach(k=>document.getElementById(k).value=state.settings[k]);
 }
 saveSettings.onclick=()=>{
-  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','fixed','loan'].forEach(k=>state.settings[k]=num(k));
+  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost','loan'].forEach(k=>state.settings[k]=num(k));
   persist(); renderHome(); renderAnalysis(); showToast('設定を保存しました');
 };
 replayIntro.onclick=()=>setScreen('welcome');
