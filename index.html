@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>飲食店利益ナビ v3</title>
+<style>
+:root{
+  --bg:#f5f7fb;--card:#fff;--ink:#111827;--sub:#6b7280;--line:#e5e7eb;
+  --good:#0f766e;--warn:#b45309;--bad:#b91c1c;--brand:#111827;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--ink)}
+.app{max-width:760px;margin:auto;padding:14px 14px 92px}
+.top{display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px}
+.title{font-size:22px;font-weight:900;letter-spacing:-.02em}
+.subtitle{font-size:12px;color:var(--sub);margin-top:4px}
+.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef2f7;font-size:11px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 4px 18px rgba(17,24,39,.04)}
+.hero .label{color:var(--sub);font-size:13px}
+.hero .value{font-size:34px;font-weight:900;margin-top:6px}
+.small{font-size:12px;color:var(--sub);line-height:1.55}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.metric{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}
+.metric .k{font-size:12px;color:var(--sub)}
+.metric .v{font-size:20px;font-weight:850;margin-top:5px}
+.section-title{font-size:16px;font-weight:900;margin-bottom:10px}
+.notice{border-left:5px solid var(--warn);padding:12px 14px;background:#fff7ed;border-radius:12px;font-size:14px;line-height:1.6}
+.notice.good{border-left-color:var(--good);background:#ecfdf5}
+.notice.bad{border-left-color:var(--bad);background:#fef2f2}
+label{font-size:12px;color:var(--sub);display:block;margin:8px 0 5px}
+input,button{font:inherit}
+input{width:100%;padding:13px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:0;border-radius:13px;padding:13px 16px;font-weight:850}
+.primary{width:100%;background:var(--brand);color:#fff;margin-top:12px}
+.secondary{background:#eef2f7;color:#111827}
+.ghost{background:transparent;border:1px solid var(--line);color:#111827}
+.danger{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{flex:1;min-width:130px}
+.bar{height:12px;background:#eef2f7;border-radius:999px;overflow:hidden}
+.bar>span{display:block;height:100%;background:#111827;width:0}
+.tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+.tabs.hidden{display:none}
+.tabs .wrap{width:min(760px,100%);display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{padding:12px 4px;background:transparent;color:var(--sub);font-size:12px}
+.tab.active{color:#111827}
+.screen{display:none}
+.screen.active{display:block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+.chart{display:flex;align-items:end;gap:5px;height:120px;padding-top:8px}
+.col{flex:1;background:#dbe2ea;border-radius:6px 6px 0 0;min-height:3px}
+.delta.up{color:#0f766e}
+.delta.down{color:#b91c1c}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.summaryline{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.summaryline:last-child{border-bottom:0}
+.summaryline b{font-size:14px}
+.help{font-size:11px;color:var(--sub);margin-top:5px;line-height:1.5}
+
+.welcome-wrap{min-height:calc(100vh - 120px);display:flex;align-items:center}
+.welcome-panel{
+  width:100%;background:#fff;border:1px solid #eef1f5;border-radius:28px;
+  box-shadow:0 20px 48px rgba(15,23,42,.08);padding:24px 20px 22px;
+}
+.hero-illustration{display:flex;justify-content:center;align-items:center;margin-top:4px;margin-bottom:10px}
+.hero-illustration svg{width:116px;height:116px;display:block}
+.onboard-title{font-size:32px;font-weight:900;letter-spacing:-.04em;line-height:1.1;text-align:center;color:#0f234d}
+.onboard-sub{font-size:14px;color:#667085;text-align:center;margin-top:10px}
+.onboard-divider{display:flex;justify-content:center;align-items:center;gap:10px;margin:20px 0 18px}
+.onboard-divider .line{width:44px;height:1px;background:#e5e7eb}.onboard-divider .dot{width:10px;height:10px;border-radius:999px;background:#34d399}
+.onboard-hook{font-size:20px;font-weight:900;line-height:1.45;text-align:center;color:#0f234d;letter-spacing:-.02em}
+.onboard-hook .accent{color:#22c55e}
+.onboard-copy{font-size:14px;line-height:1.85;text-align:center;color:#334155;margin-top:14px}
+.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:22px}
+.feature-card{border-radius:18px;padding:14px 10px 16px;min-height:154px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center}
+.feature-icon{width:48px;height:48px;margin-bottom:10px;display:flex;align-items:center;justify-content:center}
+.feature-icon svg{width:44px;height:44px;display:block}
+.feature-name{font-size:16px;font-weight:900;color:#0f234d;letter-spacing:-.02em}
+.feature-desc{font-size:12px;color:#334155;line-height:1.6;margin-top:8px}
+.feature-green{background:#edf8f2}.feature-blue{background:#eef5ff}.feature-yellow{background:#fff7e8}.feature-purple{background:#f5f0ff}
+.onboard-actions{display:grid;grid-template-columns:1fr;gap:12px;margin-top:24px}
+.onboard-primary{background:linear-gradient(90deg,#061c58 0%,#0f2d73 100%);color:#fff;font-weight:900;font-size:18px;padding:16px 18px;border-radius:18px}
+.onboard-secondary{background:#fff;color:#0f234d;border:2px solid #d9dfeb;font-weight:900;font-size:18px;padding:15px 18px;border-radius:18px}
+.steps{display:none;margin-top:18px;padding-top:6px}
+.steps.show{display:block}
+.step{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #eef1f5}
+.step:last-child{border-bottom:0}
+.step-no{width:30px;height:30px;border-radius:999px;background:#0f234d;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex:0 0 30px}
+.step-text b{display:block;font-size:14px;color:#0f234d}
+.step-text span{display:block;font-size:12px;color:#475569;line-height:1.7;margin-top:4px}
+.replay-note{font-size:11px;color:var(--sub);margin-top:8px}
+@media (max-width:520px){
+  .feature-grid{grid-template-columns:repeat(4,1fr);gap:8px}
+  .feature-card{min-height:146px;padding:12px 8px 14px}
+  .feature-name{font-size:15px}
+  .feature-desc{font-size:11px}
+  .onboard-title{font-size:30px}
+  .onboard-hook{font-size:18px}
+}
+
+
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.quick-btn{border:0;border-radius:16px;padding:14px 10px;font-weight:900;font-size:14px}
+.quick-entry{background:#edf8f2;color:#147a46}.quick-analysis{background:#eef5ff;color:#1d4ed8}
+.recent-list{display:flex;flex-direction:column;gap:8px}
+.recent-row{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;border:1px solid var(--line);background:#fafbfc;border-radius:14px;padding:12px 13px;color:var(--ink)}
+.recent-row b{display:block;color:#0f234d;font-size:14px}.recent-row small{display:block;color:var(--sub);font-size:11px;margin-top:3px}.recent-row strong{color:#0f234d;font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#111827;color:white;padding:11px 15px;border-radius:999px;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:.2s;z-index:200;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:430px){.row{grid-template-columns:1fr 1fr}.card{padding:15px}.hero .value{font-size:31px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div>
+      <div class="title">飲食店利益ナビ</div>
+      <div class="subtitle">30秒入力 → 今月どうなのか一目でわかる</div>
+    </div>
+    <span class="pill" id="todayPill"></span>
+  </div>
+
+  <section id="welcome" class="screen active">
+    <div class="welcome-wrap">
+      <div class="welcome-panel">
+        <div class="hero-illustration" aria-hidden="true">
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M26 45H70V80H26V45Z" stroke="#0F234D" stroke-width="4.5" stroke-linejoin="round"/>
+            <path d="M21 45C21 36 27 29 34 29H62C69 29 75 36 75 45C75 50 71 54 66 54C62 54 58 52 56 49C54 52 50 54 46 54C42 54 38 52 36 49C34 52 30 54 26 54C23 54 21 51 21 45Z" fill="white" stroke="#0F234D" stroke-width="4.5" stroke-linejoin="round"/>
+            <path d="M44 80V56H55" stroke="#0F234D" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M85 34C98 34 109 45 109 58C109 71 98 82 85 82C72 82 61 71 61 58C61 45 72 34 85 34Z" fill="white"/>
+            <path d="M85 34C98 34 109 45 109 58C109 71 98 82 85 82C72 82 61 71 61 58C61 45 72 34 85 34Z" stroke="#0F234D" stroke-width="4.5"/>
+            <path d="M85 58V35C91 35 97 37 101 41L85 58Z" fill="#FDBA2D"/>
+            <path d="M85 58L101 41C106 46 108 53 108 58H85Z" fill="#0F234D"/>
+            <path d="M85 58H108C108 63 106 68 103 72L85 58Z" fill="#0F234D"/>
+            <path d="M85 58L103 72C98 78 91 81 85 81V58Z" fill="#22C55E"/>
+            <path d="M85 58V81C72 81 61 70 61 58H85Z" fill="#0F234D"/>
+          </svg>
+        </div>
+        <div class="onboard-title">飲食店利益ナビ</div>
+        <div class="onboard-sub">シンプル入力で、お店の数字を見える化</div>
+        <div class="onboard-divider"><span class="line"></span><span class="dot"></span><span class="line"></span></div>
+        <div class="onboard-hook">お店の現状を<span class="accent">すぐに把握！</span></div>
+        <div class="onboard-copy">売上・仕入・原価率・利益予測を<br>わかりやすくまとめて確認できます。</div>
+
+        <div class="feature-grid">
+          <div class="feature-card feature-green">
+            <div class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="27" width="7" height="13" rx="2" fill="#22C55E"/>
+                <rect x="19" y="20" width="7" height="20" rx="2" fill="#22C55E"/>
+                <rect x="30" y="11" width="7" height="29" rx="2" fill="#22C55E"/>
+                <path d="M8 37L18 29L24 24L34 14" stroke="#22C55E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="feature-name">売上</div>
+            <div class="feature-desc">今日・今月の<br>売上を確認</div>
+          </div>
+          <div class="feature-card feature-blue">
+            <div class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 13H15L18 30H36" stroke="#3B82F6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18 16H39L36 26H20" stroke="#3B82F6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="22" cy="34" r="2.8" fill="#3B82F6"/>
+                <circle cx="34" cy="34" r="2.8" fill="#3B82F6"/>
+              </svg>
+            </div>
+            <div class="feature-name">仕入</div>
+            <div class="feature-desc">日次・月次の<br>仕入れを管理</div>
+          </div>
+          <div class="feature-card feature-yellow">
+            <div class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="24" r="16" fill="#FDBA2D"/>
+                <path d="M24 24V8" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M24 24H40" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M24 24L35 35" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="feature-name">原価率</div>
+            <div class="feature-desc">実原価率を<br>自動で確認</div>
+          </div>
+          <div class="feature-card feature-purple">
+            <div class="feature-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="11" cy="32" r="3.5" fill="#8B5CF6"/>
+                <circle cx="23" cy="24" r="3.5" fill="#8B5CF6"/>
+                <circle cx="35" cy="28" r="3.5" fill="#8B5CF6"/>
+                <circle cx="39" cy="14" r="3.5" fill="#8B5CF6"/>
+                <path d="M11 32L23 24L35 28L39 14" stroke="#8B5CF6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="feature-name">利益予測</div>
+            <div class="feature-desc">月末の利益を<br>予測して把握</div>
+          </div>
+        </div>
+
+        <div class="onboard-actions">
+          <button class="onboard-primary" id="startApp">はじめる</button>
+          <button class="onboard-secondary" id="toggleGuide">使い方を見る</button>
+        </div>
+
+        <div id="guideSteps" class="steps">
+          <div class="step">
+            <div class="step-no">1</div>
+            <div class="step-text">
+              <b>毎日の売上と仕入を入力</b>
+              <span>現金・クレジット・QR・その他・客数・仕入だけでもOKです。</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-no">2</div>
+            <div class="step-text">
+              <b>月末に棚卸と人件費を入力</b>
+              <span>月初棚卸・月末棚卸を入れると、実原価率と営業利益がより正確になります。</span>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-no">3</div>
+            <div class="step-text">
+              <b>ホームで自動診断を見る</b>
+              <span>売上ペース、仕入の増え方、利益見込みを分かりやすく表示します。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="home" class="screen">
+    <div class="card hero">
+      <div class="label">今月の売上</div>
+      <div class="value" id="monthSales">¥0</div>
+      <div class="small" id="goalText">目標を設定してください</div>
+      <div class="bar" style="margin-top:12px"><span id="goalBar"></span></div><div class="quick-actions"><button class="quick-btn quick-entry" data-jump="daily">＋ 今日の数字を入力</button><button class="quick-btn quick-analysis" data-jump="analysis">今月を分析</button></div>
+    </div>
+
+    <div class="grid">
+      <div class="metric"><div class="k">月末売上予測</div><div class="v" id="forecast">¥0</div></div>
+      <div class="metric"><div class="k">利益予測</div><div class="v" id="profitForecast">¥0</div></div>
+      <div class="metric"><div class="k">実原価率</div><div class="v" id="actualCostRate">--</div></div>
+      <div class="metric"><div class="k">FL比率</div><div class="v" id="flRate">--</div></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">今月の診断</div>
+      <div id="advice" class="notice good">まずは今日の売上と仕入を入力してください。</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">前月と比べる</div>
+      <div class="summaryline"><span>売上</span><b id="cmpSales">--</b></div>
+      <div class="summaryline"><span>客単価</span><b id="cmpAvg">--</b></div>
+      <div class="summaryline"><span>仕入率</span><b id="cmpPurchase">--</b></div>
+      <div class="summaryline"><span>利益</span><b id="cmpProfit">--</b></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">直近14営業日の売上</div>
+      <div id="miniChart" class="chart"></div>
+    </div>
+  </section>
+
+  <section id="daily" class="screen">
+    <div class="card">
+      <div class="section-title">今日の入力</div>
+      <label>日付</label><input type="date" id="date">
+      <div class="row">
+        <div><label>現金</label><input type="number" inputmode="numeric" id="cash" placeholder="0"></div>
+        <div><label>クレジット</label><input type="number" inputmode="numeric" id="card" placeholder="0"></div>
+      </div>
+      <div class="row">
+        <div><label>PayPay / QR</label><input type="number" inputmode="numeric" id="qr" placeholder="0"></div>
+        <div><label>その他売上</label><input type="number" inputmode="numeric" id="other" placeholder="0"></div>
+      </div>
+      <div class="row">
+        <div><label>客数</label><input type="number" inputmode="numeric" id="customers" placeholder="0"></div>
+        <div><label>今日の仕入</label><input type="number" inputmode="numeric" id="purchase" placeholder="0"></div>
+      </div>
+      <div class="row">
+        <div><label>今日の人件費（任意）</label><input type="number" inputmode="numeric" id="laborDay" placeholder="0"></div>
+        <div><label>廃棄・ロス（任意）</label><input type="number" inputmode="numeric" id="waste" placeholder="0"></div>
+      </div>
+      <label>メモ</label><input id="memo" placeholder="雨、イベント、団体予約など">
+      <button class="primary" id="saveDay">保存する</button>
+      <div class="help">毎日必須なのは「売上・客数・仕入」だけ。人件費やロスは必要な店だけ入力。</div>
+    </div>
+    <div class="card hero"><div class="label">今日の売上合計</div><div class="value" id="todayTotal">¥0</div></div>
+  </section>
+
+  <section id="analysis" class="screen">
+    <div class="card">
+      <div class="section-title">月次まとめ</div>
+      <label>分析する月</label><input type="month" id="analysisMonth">
+      <div class="hr"></div>
+      <div class="summaryline"><span>売上</span><b id="aSales">¥0</b></div>
+      <div class="summaryline"><span>月間仕入</span><b id="aPurchases">¥0</b></div>
+      <div class="summaryline"><span>仕入率</span><b id="aPurchaseRate">0%</b></div>
+      <div class="summaryline"><span>実原価</span><b id="aActualCost">--</b></div>
+      <div class="summaryline"><span>実原価率</span><b id="aActualCostRate">--</b></div>
+      <div class="summaryline"><span>粗利益</span><b id="aGrossProfit">--</b></div>
+      <div class="summaryline"><span>人件費率</span><b id="aLaborRate">--</b></div>
+      <div class="summaryline"><span>FL比率</span><b id="aFL">--</b></div>
+      <div class="summaryline"><span>営業利益</span><b id="aProfit">--</b></div>
+      <div class="summaryline"><span>借入返済後の資金余力</span><b id="aCashAfterDebt">--</b></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">月末だけ入力</div>
+      <label>月初棚卸</label><input type="number" inputmode="numeric" id="openingStock" placeholder="0">
+      <div class="help">前月の月末棚卸があれば自動で引き継ぎます。</div>
+      <label>月まとめ仕入（請求書分など）</label><input type="number" inputmode="numeric" id="monthlyExtraPurchase" placeholder="0">
+      <label>月末棚卸</label><input type="number" inputmode="numeric" id="closingStock" placeholder="0">
+      <label>月間人件費（給与実額・任意）</label><input type="number" inputmode="numeric" id="monthlyLabor" placeholder="0">
+      <button class="primary" id="saveMonthly">月次データを保存</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">この月の診断</div>
+      <div id="monthlyAdvice" class="notice good">月次データを入れると診断します。</div>
+    </div>
+  </section>
+
+  <section id="settings" class="screen">
+    <div class="card">
+      <div class="section-title">経営設定</div>
+      <label>月間売上目標</label><input type="number" id="goal" value="2800000">
+      <div class="row">
+        <div><label>目標原価率（%）</label><input type="number" id="targetCostRate" value="32" step="0.1"></div>
+        <div><label>目標人件費率（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
+      </div>
+      <label>月間固定費（家賃・リース・保険等）</label><input type="number" id="fixed" value="285000">
+      <label>借入返済（月額）※営業利益とは別管理</label><input type="number" id="loan" value="90000">
+      <button class="primary" id="saveSettings">設定を保存</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">オープニング</div>
+      <button class="ghost" id="replayIntro">もう一度オープニングを見る</button>
+      <div class="replay-note">初回だけ表示されますが、ここから再表示できます。</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">バックアップ</div>
+      <div class="actions">
+        <button class="secondary" id="exportBtn">書き出す</button>
+        <button class="secondary" id="importBtn">読み込む</button>
+        <button class="danger" id="resetBtn">全削除</button>
+      </div>
+      <input type="file" id="fileInput" accept="application/json" hidden>
+    </div>
+
+    <div class="card small">
+      このアプリは飲食店の自己分析・経営管理用です。税務申告、会計処理、税務判断を代替するものではありません。
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast">保存しました</div>
+<nav id="bottomTabs" class="tabs hidden">
+  <div class="wrap">
+    <button class="tab" data-screen="home">ホーム</button>
+    <button class="tab" data-screen="daily">今日入力</button>
+    <button class="tab" data-screen="analysis">分析</button>
+    <button class="tab" data-screen="settings">設定</button>
+  </div>
+</nav>
+
+<script>
+
+const KEY='restaurant-profit-navi-v3';
+const defaultState={
+  days:{},
+  months:{},
+  settings:{goal:2800000,targetCostRate:32,targetLaborRate:16,fixed:285000,loan:90000},
+  meta:{seenIntro:false}
+};
+let state=load();
+const $=id=>document.getElementById(id);
+const todayPill=$('todayPill');
+const date=$('date');
+const analysisMonth=$('analysisMonth');
+const bottomTabs=$('bottomTabs');
+const monthSales=$('monthSales');
+const goalText=$('goalText');
+const goalBar=$('goalBar');
+const forecast=$('forecast');
+const profitForecast=$('profitForecast');
+const actualCostRate=$('actualCostRate');
+const flRate=$('flRate');
+const cmpSales=$('cmpSales');
+const cmpAvg=$('cmpAvg');
+const cmpPurchase=$('cmpPurchase');
+const cmpProfit=$('cmpProfit');
+const advice=$('advice');
+const miniChart=$('miniChart');
+const aSales=$('aSales');
+const aPurchases=$('aPurchases');
+const aPurchaseRate=$('aPurchaseRate');
+const aActualCost=$('aActualCost');
+const aActualCostRate=$('aActualCostRate');
+const aGrossProfit=$('aGrossProfit');
+const aLaborRate=$('aLaborRate');
+const aFL=$('aFL');
+const aProfit=$('aProfit');
+const aCashAfterDebt=$('aCashAfterDebt');
+const openingStock=$('openingStock');
+const monthlyExtraPurchase=$('monthlyExtraPurchase');
+const closingStock=$('closingStock');
+const monthlyLabor=$('monthlyLabor');
+const monthlyAdvice=$('monthlyAdvice');
+const todayTotal=$('todayTotal');
+const saveDay=$('saveDay');
+const memo=$('memo');
+const customers=$('customers');
+const purchase=$('purchase');
+const laborDay=$('laborDay');
+const waste=$('waste');
+const cash=$('cash');
+const card=$('card');
+const qr=$('qr');
+const other=$('other');
+const saveMonthly=$('saveMonthly');
+const goal=$('goal');
+const targetCostRate=$('targetCostRate');
+const targetLaborRate=$('targetLaborRate');
+const fixed=$('fixed');
+const loan=$('loan');
+const saveSettings=$('saveSettings');
+const replayIntro=$('replayIntro');
+const startApp=$('startApp');
+const toggleGuide=$('toggleGuide');
+const guideSteps=$('guideSteps');
+const exportBtn=$('exportBtn');
+const importBtn=$('importBtn');
+const fileInput=$('fileInput');
+const resetBtn=$('resetBtn');
+const recentDays=$('recentDays');
+const toast=$('toast');
+
+
+function load(){
+  try{
+    const d=JSON.parse(localStorage.getItem(KEY)||'{}');
+    return {
+      days:d.days||{},
+      months:d.months||{},
+      settings:{...defaultState.settings,...(d.settings||{})},
+      meta:{...defaultState.meta,...(d.meta||{})}
+    };
+  }catch{
+    return JSON.parse(JSON.stringify(defaultState));
+  }
+}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const yen=n=>new Intl.NumberFormat('ja-JP',{style:'currency',currency:'JPY',maximumFractionDigits:0}).format(Math.round(n||0));
+const pct=n=>`${(n||0).toFixed(1)}%`;
+const iso=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),da=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${da}`};
+const ym=d=>iso(d).slice(0,7);
+const today=new Date();
+date.value=iso(today);
+analysisMonth.value=ym(today);
+todayPill.textContent=`${today.getMonth()+1}/${today.getDate()}`;
+
+function num(id){return Number(document.getElementById(id).value||0)}
+function daysForMonth(month){return Object.entries(state.days).filter(([d])=>d.startsWith(month)).sort(([a],[b])=>a.localeCompare(b))}
+function previousMonth(month){const [y,m]=month.split('-').map(Number);const d=new Date(y,m-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
+
+function calcMonth(month){
+  const rows=daysForMonth(month);
+  let sales=0,cash=0,customers=0,dailyPurchases=0,laborActual=0,waste=0;
+  rows.forEach(([,x])=>{
+    sales+=(x.cash||0)+(x.card||0)+(x.qr||0)+(x.other||0);
+    cash+=x.cash||0;
+    customers+=x.customers||0;
+    dailyPurchases+=x.purchase||0;
+    laborActual+=x.laborDay||0;
+    waste+=x.waste||0;
+  });
+  const md=state.months[month]||{};
+  const prev=state.months[previousMonth(month)]||{};
+  const openingStock=Number(md.openingStock ?? prev.closingStock ?? 0);
+  const extraPurchase=Number(md.monthlyExtraPurchase||0);
+  const closingStock=Number(md.closingStock||0);
+  const totalPurchases=dailyPurchases+extraPurchase;
+  const hasStockData=(openingStock>0 || closingStock>0 || md.stockConfirmed);
+  const actualCost=hasStockData ? openingStock+totalPurchases-closingStock : null;
+  const actualCostRate=(hasStockData&&sales>0) ? actualCost/sales*100 : null;
+  const grossProfit=(hasStockData) ? sales-actualCost : null;
+  const monthlyLabor=Number(md.monthlyLabor||0);
+  const labor=monthlyLabor>0 ? monthlyLabor : laborActual;
+  const laborRate=sales>0 ? labor/sales*100 : null;
+  const flRate=(actualCostRate!=null && laborRate!=null) ? actualCostRate+laborRate : null;
+  const profit=(actualCost!=null) ? sales-actualCost-labor-state.settings.fixed : null;
+  const cashAfterDebt=(profit!=null) ? profit-state.settings.loan : null;
+  const purchaseRate=sales>0 ? totalPurchases/sales*100 : 0;
+  const avgSpend=customers ? sales/customers : 0;
+  return {month,rows,sales,cash,customers,dailyPurchases,extraPurchase,totalPurchases,openingStock,closingStock,hasStockData,actualCost,actualCostRate,grossProfit,labor,laborRate,flRate,profit,cashAfterDebt,purchaseRate,avgSpend,waste};
+}
+function currentForecast(){
+  const m=ym(today),s=calcMonth(m);
+  const day=today.getDate(),dim=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+  const forecast=day ? s.sales/day*dim : 0;
+  const estimatedCost=forecast*state.settings.targetCostRate/100;
+  const estimatedLabor=forecast*state.settings.targetLaborRate/100;
+  const profitForecast=forecast-estimatedCost-estimatedLabor-state.settings.fixed;
+  return {...s,forecast,profitForecast};
+}
+function deltaText(cur,prev,isRate=false){
+  if(prev===null||prev===undefined||prev===0)return '--';
+  const diff=cur-prev;
+  const rel=isRate ? diff : (diff/Math.abs(prev)*100);
+  const cls=diff>=0 ? 'up' : 'down';
+  const sign=diff>=0 ? '+' : '';
+  return `<span class="delta ${cls}">${sign}${isRate?diff.toFixed(1)+'pt':rel.toFixed(1)+'%'}</span>`;
+}
+function setScreen(screenId){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  const tab=[...document.querySelectorAll('.tab')].find(x=>x.dataset.screen===screenId);
+  if(tab)tab.classList.add('active');
+  bottomTabs.classList.toggle('hidden', screenId==='welcome');
+  if(screenId==='analysis') renderAnalysis();
+  if(screenId==='daily'){loadDayForm(date.value);renderRecent();}
+}
+function showAppHome(){setScreen('home')}
+function initIntro(){
+  if(state.meta.seenIntro){showAppHome()}
+  else{setScreen('welcome')}
+}
+function showToast(message){
+  toast.textContent=message;toast.classList.add('show');
+  clearTimeout(showToast._t);showToast._t=setTimeout(()=>toast.classList.remove('show'),1600);
+}
+function dayTotal(x){return (x.cash||0)+(x.card||0)+(x.qr||0)+(x.other||0)}
+function loadDayForm(d){
+  const x=state.days[d]||{};
+  ['cash','card','qr','other','customers','purchase','laborDay','waste'].forEach(id=>document.getElementById(id).value=x[id]||'');
+  memo.value=x.memo||'';
+  todayTotal.textContent=yen(dayTotal(x));
+}
+function renderRecent(){
+  const rows=Object.entries(state.days).sort(([a],[b])=>b.localeCompare(a)).slice(0,5);
+  recentDays.innerHTML='';
+  if(!rows.length){recentDays.innerHTML='<div class="small">まだ入力はありません。</div>';return}
+  rows.forEach(([d,x])=>{
+    const b=document.createElement('button');b.className='recent-row';
+    b.innerHTML=`<span><b>${d.slice(5).replace('-','/')}</b><small>客数 ${x.customers||0}人 ・ 仕入 ${yen(x.purchase||0)}</small></span><strong>${yen(dayTotal(x))}</strong>`;
+    b.onclick=()=>{date.value=d;loadDayForm(d);window.scrollTo({top:0,behavior:'smooth'})};
+    recentDays.appendChild(b);
+  });
+}
+function renderHome(){
+  const s=currentForecast(), goal=state.settings.goal, ratio=goal ? s.sales/goal*100 : 0;
+  monthSales.textContent=yen(s.sales);
+  goalText.textContent=`目標 ${yen(goal)} の ${ratio.toFixed(1)}%`;
+  goalBar.style.width=`${Math.min(100,ratio)}%`;
+  forecast.textContent=yen(s.forecast);
+  profitForecast.textContent=yen(s.profitForecast);
+  actualCostRate.textContent=s.actualCostRate==null ? '月末棚卸後' : pct(s.actualCostRate);
+  flRate.textContent=s.flRate==null ? '月末確定' : pct(s.flRate);
+
+  const prev=calcMonth(previousMonth(ym(today)));
+  cmpSales.innerHTML=deltaText(s.sales,prev.sales);
+  cmpAvg.innerHTML=deltaText(s.avgSpend,prev.avgSpend);
+  cmpPurchase.innerHTML=(prev.purchaseRate ? deltaText(s.purchaseRate,prev.purchaseRate,true) : '--');
+  cmpProfit.innerHTML=(s.profit!=null&&prev.profit!=null ? deltaText(s.profit,prev.profit) : '--');
+
+  let msg='まずは今日の売上と仕入を入力してください。',cls='notice good';
+  if(s.sales>0){
+    const targetPace=goal*(today.getDate()/new Date(today.getFullYear(),today.getMonth()+1,0).getDate());
+    if(s.sales<targetPace*0.9){
+      msg=`売上ペースが目標より遅めです。このままなら月末 ${yen(s.forecast)} 予測。まず「客数」か「客単価」のどちらが落ちているか確認してください。`;
+      cls='notice bad';
+    }else if(s.purchaseRate>state.settings.targetCostRate+5){
+      msg=`仕入率が ${pct(s.purchaseRate)} と高めです。月末棚卸前なので原価率とは別ですが、仕入過多や在庫増加がないか確認してください。`;
+      cls='notice';
+    }else{
+      msg=`今月は大きな崩れは見えていません。月末棚卸を入れると実原価率と利益を確定できます。`;
+      cls='notice good';
+    }
+  }
+  advice.textContent=msg; advice.className=cls;
+
+  miniChart.innerHTML='';
+  const last=s.rows.slice(-14);
+  const max=Math.max(1,...last.map(([,x])=>(x.cash||0)+(x.card||0)+(x.qr||0)+(x.other||0)));
+  last.forEach(([d,x])=>{
+    const v=(x.cash||0)+(x.card||0)+(x.qr||0)+(x.other||0);
+    const c=document.createElement('div');
+    c.className='col';
+    c.style.height=`${Math.max(3,v/max*100)}%`;
+    c.title=`${d}: ${yen(v)}`;
+    miniChart.appendChild(c);
+  });
+}
+function renderAnalysis(){
+  const m=analysisMonth.value||ym(today),s=calcMonth(m);
+  aSales.textContent=yen(s.sales);
+  aPurchases.textContent=yen(s.totalPurchases);
+  aPurchaseRate.textContent=pct(s.purchaseRate);
+  aActualCost.textContent=s.actualCost==null ? '月末棚卸で確定' : yen(s.actualCost);
+  aActualCostRate.textContent=s.actualCostRate==null ? '--' : pct(s.actualCostRate);
+  aGrossProfit.textContent=s.grossProfit==null ? '--' : yen(s.grossProfit);
+  aLaborRate.textContent=s.laborRate==null ? '--' : pct(s.laborRate);
+  aFL.textContent=s.flRate==null ? '--' : pct(s.flRate);
+  aProfit.textContent=s.profit==null ? '--' : yen(s.profit);
+  aCashAfterDebt.textContent=s.cashAfterDebt==null ? '--' : yen(s.cashAfterDebt);
+
+  const md=state.months[m]||{}, prev=state.months[previousMonth(m)]||{};
+  openingStock.value=md.openingStock ?? prev.closingStock ?? 0;
+  monthlyExtraPurchase.value=md.monthlyExtraPurchase||0;
+  closingStock.value=md.closingStock||0;
+  monthlyLabor.value=md.monthlyLabor||0;
+
+  let msg='月次データを入れると診断します。',cls='notice good';
+  if(s.sales>0){
+    if(!s.hasStockData){
+      msg=`今月の仕入率は ${pct(s.purchaseRate)}。ただし仕入率と原価率は別です。月末棚卸を入れると実原価率が確定します。`;
+      cls='notice';
+    }else if(s.actualCostRate>state.settings.targetCostRate+3){
+      msg=`実原価率 ${pct(s.actualCostRate)}。目標 ${pct(state.settings.targetCostRate)} より高めです。仕入価格、廃棄、盛付量、値付けの順で確認すると原因を探しやすいです。`;
+      cls='notice bad';
+    }else if(s.laborRate!=null && s.laborRate>state.settings.targetLaborRate+3){
+      msg=`原価は大きく崩れていませんが、人件費率 ${pct(s.laborRate)} が目標より高めです。人員削減より先に、弱い曜日・時間帯の売上を確認してください。`;
+      cls='notice';
+    }else if(s.profit!=null && s.profit<0){
+      msg=`営業利益が ${yen(s.profit)} の赤字です。売上・原価・人件費のうち、目標から最も離れている項目を優先して改善してください。`;
+      cls='notice bad';
+    }else{
+      msg=`今月は大きな異常は見えていません。実原価率 ${pct(s.actualCostRate||0)}、人件費率 ${pct(s.laborRate||0)}、営業利益 ${yen(s.profit||0)}。前月比較も合わせて確認してください。`;
+      cls='notice good';
+    }
+  }
+  monthlyAdvice.textContent=msg; monthlyAdvice.className=cls;
+}
+['cash','card','qr','other'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  todayTotal.textContent=yen(num('cash')+num('card')+num('qr')+num('other'))
+}));
+saveDay.onclick=()=>{
+  const d=date.value; if(!d) return alert('日付を選んでください');
+  state.days[d]={
+    cash:num('cash'),card:num('card'),qr:num('qr'),other:num('other'),
+    customers:num('customers'),purchase:num('purchase'),laborDay:num('laborDay'),
+    waste:num('waste'),memo:memo.value
+  };
+  persist(); renderHome(); renderAnalysis(); renderRecent(); showToast('保存しました');
+};
+saveMonthly.onclick=()=>{
+  const m=analysisMonth.value; if(!m) return alert('月を選んでください');
+  state.months[m]={
+    openingStock:num('openingStock'),
+    monthlyExtraPurchase:num('monthlyExtraPurchase'),
+    closingStock:num('closingStock'),
+    monthlyLabor:num('monthlyLabor'),
+    stockConfirmed:true
+  };
+  persist(); renderAnalysis(); renderHome(); showToast('月次データを保存しました');
+};
+function loadSettingsUI(){
+  ['goal','targetCostRate','targetLaborRate','fixed','loan'].forEach(k=>document.getElementById(k).value=state.settings[k]);
+}
+saveSettings.onclick=()=>{
+  ['goal','targetCostRate','targetLaborRate','fixed','loan'].forEach(k=>state.settings[k]=num(k));
+  persist(); renderHome(); renderAnalysis(); showToast('設定を保存しました');
+};
+replayIntro.onclick=()=>setScreen('welcome');
+startApp.onclick=()=>{
+  state.meta.seenIntro=true;
+  persist();
+  showAppHome();
+};
+toggleGuide.onclick=()=>{
+  guideSteps.classList.toggle('show');
+  toggleGuide.textContent=guideSteps.classList.contains('show') ? '使い方を閉じる' : '使い方を見る';
+};
+date.onchange=()=>loadDayForm(date.value);
+analysisMonth.onchange=renderAnalysis;
+exportBtn.onclick=()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='restaurant-profit-navi-backup.json'; a.click(); URL.revokeObjectURL(a.href);
+};
+importBtn.onclick=()=>fileInput.click();
+fileInput.onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      state={
+        days:d.days||{},
+        months:d.months||{},
+        settings:{...defaultState.settings,...(d.settings||{})},
+        meta:{...defaultState.meta,...(d.meta||{})}
+      };
+      persist(); loadSettingsUI(); renderHome(); renderAnalysis(); initIntro(); alert('読み込みました');
+    }catch{alert('読み込みに失敗しました')}
+  };
+  r.readAsText(f);
+};
+resetBtn.onclick=()=>{
+  if(confirm('すべてのデータを削除しますか？')){
+    localStorage.removeItem(KEY);
+    location.reload();
+  }
+};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setScreen(b.dataset.screen));
+document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setScreen(b.dataset.jump));
+
+loadSettingsUI();
+renderHome();
+renderAnalysis();
+renderRecent();
+loadDayForm(date.value);
+initIntro();
+
+</script>
+</body>
+</html>
