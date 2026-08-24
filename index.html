@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
-<title>飲食店利益ナビ v3</title>
+<title>飲食店利益ナビ</title>
 <style>
 :root{
   --bg:#f5f7fb;--card:#fff;--ink:#111827;--sub:#6b7280;--line:#e5e7eb;
@@ -241,7 +241,7 @@ th:first-child,td:first-child{text-align:left}
     </div>
 
     <div class="grid">
-      <div class="metric"><div class="k">月末売上予測</div><div class="v" id="forecast">¥0</div></div>
+      <div class="metric"><div class="k">月末売上予測</div><div class="v" id="forecast">--</div><div class="small" id="forecastConfidence">予測データなし</div></div>
       <div class="metric"><div class="k">利益予測</div><div class="v" id="profitForecast">¥0</div></div>
       <div class="metric"><div class="k">実原価率</div><div class="v" id="actualCostRate">--</div></div>
       <div class="metric"><div class="k">FL比率</div><div class="v" id="flRate">--</div></div>
@@ -330,6 +330,8 @@ th:first-child,td:first-child{text-align:left}
     <div class="card">
       <div class="section-title">経営設定</div>
       <label>月間売上目標</label><input type="number" id="goal" value="2800000">
+      <label>想定営業日数 / 月</label><input type="number" id="monthlyOpenDays" value="26" min="1" max="31">
+      <div class="small">月末予測は「入力済み営業日の平均売上 × 想定営業日数」で計算します。</div>
       <div class="row">
         <div><label>目標原価率（%）</label><input type="number" id="targetCostRate" value="32" step="0.1"></div>
         <div><label>目標人件費率（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
@@ -377,7 +379,7 @@ const KEY='restaurant-profit-navi-v3';
 const defaultState={
   days:{},
   months:{},
-  settings:{goal:2800000,targetCostRate:32,targetLaborRate:16,fixed:285000,loan:90000},
+  settings:{goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,fixed:285000,loan:90000},
   meta:{seenIntro:false}
 };
 let state=load();
@@ -391,6 +393,7 @@ const goalText=$('goalText');
 const goalBar=$('goalBar');
 const forecast=$('forecast');
 const profitForecast=$('profitForecast');
+const forecastConfidence=$('forecastConfidence');
 const actualCostRate=$('actualCostRate');
 const flRate=$('flRate');
 const cmpSales=$('cmpSales');
@@ -431,6 +434,7 @@ const targetCostRate=$('targetCostRate');
 const targetLaborRate=$('targetLaborRate');
 const fixed=$('fixed');
 const loan=$('loan');
+const monthlyOpenDays=$('monthlyOpenDays');
 const saveSettings=$('saveSettings');
 const replayIntro=$('replayIntro');
 const startApp=$('startApp');
@@ -504,12 +508,15 @@ function calcMonth(month){
 }
 function currentForecast(){
   const m=ym(today),s=calcMonth(m);
-  const day=today.getDate(),dim=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
-  const forecast=day ? s.sales/day*dim : 0;
-  const estimatedCost=forecast*state.settings.targetCostRate/100;
-  const estimatedLabor=forecast*state.settings.targetLaborRate/100;
-  const profitForecast=forecast-estimatedCost-estimatedLabor-state.settings.fixed;
-  return {...s,forecast,profitForecast};
+  const enteredSalesDays=s.rows.filter(([,x])=>dayTotal(x)>0 || (x.customers||0)>0).length;
+  const assumedOpenDays=Math.max(enteredSalesDays, Number(state.settings.monthlyOpenDays)||26);
+  const avgSalesPerEnteredDay=enteredSalesDays>0 ? s.sales/enteredSalesDays : 0;
+  const forecast=enteredSalesDays>0 ? avgSalesPerEnteredDay*assumedOpenDays : null;
+  const estimatedCost=forecast==null ? null : forecast*state.settings.targetCostRate/100;
+  const estimatedLabor=forecast==null ? null : forecast*state.settings.targetLaborRate/100;
+  const profitForecast=forecast==null ? null : forecast-estimatedCost-estimatedLabor-state.settings.fixed;
+  const confidence=enteredSalesDays>=8 ? '高' : enteredSalesDays>=3 ? '中' : enteredSalesDays>=1 ? '低' : 'なし';
+  return {...s,forecast,profitForecast,enteredSalesDays,assumedOpenDays,avgSalesPerEnteredDay,confidence};
 }
 function deltaText(cur,prev,isRate=false){
   if(prev===null||prev===undefined||prev===0)return '--';
@@ -561,8 +568,11 @@ function renderHome(){
   monthSales.textContent=yen(s.sales);
   goalText.textContent=`目標 ${yen(goal)} の ${ratio.toFixed(1)}%`;
   goalBar.style.width=`${Math.min(100,ratio)}%`;
-  forecast.textContent=yen(s.forecast);
-  profitForecast.textContent=yen(s.profitForecast);
+  forecast.textContent=s.forecast==null ? '--' : yen(s.forecast);
+  profitForecast.textContent=s.profitForecast==null ? '--' : yen(s.profitForecast);
+  forecastConfidence.textContent=s.enteredSalesDays===0
+    ? '予測データなし'
+    : `予測精度：${s.confidence}（${s.enteredSalesDays}営業日分 / 想定${s.assumedOpenDays}日）`;
   actualCostRate.textContent=s.actualCostRate==null ? '月末棚卸後' : pct(s.actualCostRate);
   flRate.textContent=s.flRate==null ? '月末確定' : pct(s.flRate);
 
@@ -573,16 +583,21 @@ function renderHome(){
   cmpProfit.innerHTML=(s.profit!=null&&prev.profit!=null ? deltaText(s.profit,prev.profit) : '--');
 
   let msg='まずは今日の売上と仕入を入力してください。',cls='notice good';
-  if(s.sales>0){
-    const targetPace=goal*(today.getDate()/new Date(today.getFullYear(),today.getMonth()+1,0).getDate());
-    if(s.sales<targetPace*0.9){
-      msg=`売上ペースが目標より遅めです。このままなら月末 ${yen(s.forecast)} 予測。まず「客数」か「客単価」のどちらが落ちているか確認してください。`;
+  if(s.enteredSalesDays===1){
+    msg=`まず1営業日分のデータを確認しました。まだ良し悪しは判断しません。あと2営業日ほど入力すると、月末予測の精度が上がります。`;
+    cls='notice good';
+  }else if(s.enteredSalesDays===2){
+    msg=`2営業日分のデータがあります。まだ断定せず、次の営業日まで傾向を見ます。現在の月末予測は ${yen(s.forecast)} ですが参考値です。`;
+    cls='notice good';
+  }else if(s.enteredSalesDays>=3){
+    if(s.forecast < goal*0.9){
+      msg=`${s.enteredSalesDays}営業日平均では月末 ${yen(s.forecast)} の予測です。目標との差が大きめなので、客数と客単価を順番に確認しましょう。`;
       cls='notice bad';
     }else if(s.purchaseRate>state.settings.targetCostRate+5){
       msg=`仕入率が ${pct(s.purchaseRate)} と高めです。月末棚卸前なので原価率とは別ですが、仕入過多や在庫増加がないか確認してください。`;
       cls='notice';
     }else{
-      msg=`今月は大きな崩れは見えていません。月末棚卸を入れると実原価率と利益を確定できます。`;
+      msg=`${s.enteredSalesDays}営業日分では大きな崩れは見えていません。データが増えるほど月末予測の精度が上がります。`;
       cls='notice good';
     }
   }
@@ -664,10 +679,10 @@ saveMonthly.onclick=()=>{
   persist(); renderAnalysis(); renderHome(); showToast('月次データを保存しました');
 };
 function loadSettingsUI(){
-  ['goal','targetCostRate','targetLaborRate','fixed','loan'].forEach(k=>document.getElementById(k).value=state.settings[k]);
+  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','fixed','loan'].forEach(k=>document.getElementById(k).value=state.settings[k]);
 }
 saveSettings.onclick=()=>{
-  ['goal','targetCostRate','targetLaborRate','fixed','loan'].forEach(k=>state.settings[k]=num(k));
+  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','fixed','loan'].forEach(k=>state.settings[k]=num(k));
   persist(); renderHome(); renderAnalysis(); showToast('設定を保存しました');
 };
 replayIntro.onclick=()=>setScreen('welcome');
