@@ -60,6 +60,8 @@ th:first-child,td:first-child{text-align:left}
 .summaryline{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
 .summaryline:last-child{border-bottom:0}
 .summaryline b{font-size:14px}
+.summarylabel{display:flex;flex-direction:column;gap:2px;min-width:0}
+.summaryhelp{font-size:10px;color:var(--sub);line-height:1.35;font-weight:400}
 .help{font-size:11px;color:var(--sub);margin-top:5px;line-height:1.5}
 
 .welcome-wrap{min-height:calc(100vh - 120px);display:flex;align-items:center}
@@ -183,7 +185,7 @@ th:first-child,td:first-child{text-align:left}
               </svg>
             </div>
             <div class="feature-name">原価率</div>
-            <div class="feature-desc">実際の原価率を<br>自動で確認</div>
+            <div class="feature-desc">原価率を<br>自動で確認</div>
           </div>
           <div class="feature-card feature-purple">
             <div class="feature-icon" aria-hidden="true">
@@ -217,7 +219,7 @@ th:first-child,td:first-child{text-align:left}
             <div class="step-no">2</div>
             <div class="step-text">
               <b>月末に棚卸と人件費を入力</b>
-              <span>月初の在庫・月末の在庫を入れると、実際の原価率とお店に残る利益がより正確になります。</span>
+              <span>月初と月末の在庫を入れると、原価率と営業利益がより正確になります。</span>
             </div>
           </div>
           <div class="step">
@@ -243,8 +245,8 @@ th:first-child,td:first-child{text-align:left}
     <div class="grid">
       <div class="metric"><div class="k">このペースだと月末いくら？</div><div class="v" id="forecast">--</div><div class="small" id="forecastConfidence">予測データなし</div></div>
       <div class="metric"><div class="k">このペースだと利益はいくら？</div><div class="v" id="profitForecast">¥0</div></div>
-      <div class="metric"><div class="k">実際の原価率</div><div class="v" id="actualCostRate">--</div></div>
-      <div class="metric"><div class="k">原価＋人件費の割合</div><div class="v" id="flRate">--</div></div>
+      <div class="metric"><div class="k">原価率</div><div class="v" id="actualCostRate">--</div></div>
+      <div class="metric"><div class="k">原価＋人件費率</div><div class="v" id="flRate">--</div></div>
     </div>
 
     <div class="card">
@@ -256,7 +258,7 @@ th:first-child,td:first-child{text-align:left}
       <div class="section-title">前月と比べる</div>
       <div class="summaryline"><span>売上</span><b id="cmpSales">--</b></div>
       <div class="summaryline"><span>客単価</span><b id="cmpAvg">--</b></div>
-      <div class="summaryline"><span>仕入の割合</span><b id="cmpPurchase">--</b></div>
+      <div class="summaryline"><span>仕入率</span><b id="cmpPurchase">--</b></div>
       <div class="summaryline"><span>利益</span><b id="cmpProfit">--</b></div>
     </div>
 
@@ -304,16 +306,16 @@ th:first-child,td:first-child{text-align:left}
       <div class="hr"></div>
       <div class="summaryline"><span>売上</span><b id="aSales">¥0</b></div>
       <div class="summaryline"><span>今月の仕入</span><b id="aPurchases">¥0</b></div>
-      <div class="summaryline"><span>仕入の割合</span><b id="aPurchaseRate">0%</b></div>
-      <div class="summaryline"><span>実原価</span><b id="aActualCost">--</b></div>
-      <div class="summaryline"><span>実際の原価率</span><b id="aActualCostRate">--</b></div>
-      <div class="summaryline"><span>売上から原価を引いた利益</span><b id="aGrossProfit">--</b></div>
-      <div class="summaryline"><span>人件費の割合</span><b id="aLaborRate">--</b></div>
-      <div class="summaryline"><span>原価＋人件費の割合</span><b id="aFL">--</b></div>
-      <div class="summaryline"><span>毎月かかるお金の合計</span><b id="aMonthlyCosts">--</b></div>
-      <div class="summaryline"><span>お店に残る利益</span><b id="aProfit">--</b></div>
-      <div class="summaryline"><span>返済後に残るお金</span><b id="aCashAfterDebt">--</b></div>
-      <div class="small" style="margin-top:8px">借入返済はお店に残る利益とは別に差し引いて表示します。</div>
+      <div class="summaryline"><div class="summarylabel"><span>仕入率</span><span class="summaryhelp">売上に対する仕入の割合</span></div><b id="aPurchaseRate">0%</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>実際の原価</span><span class="summaryhelp">在庫を反映した原価</span></div><b id="aActualCost">--</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>原価率</span><span class="summaryhelp">売上に対する実際の原価</span></div><b id="aActualCostRate">--</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>粗利</span><span class="summaryhelp">原価を引いたあとの利益</span></div><b id="aGrossProfit">--</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>人件費率</span><span class="summaryhelp">売上に対する人件費</span></div><b id="aLaborRate">--</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>原価＋人件費率</span><span class="summaryhelp">原価と人件費を合わせた割合</span></div><b id="aFL">--</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>毎月の経費</span><span class="summaryhelp">家賃・リースなどの合計</span></div><b id="aMonthlyCosts">--</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>営業利益</span><span class="summaryhelp">毎月の経費を引いたあとの利益</span></div><b id="aProfit">--</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>返済後の残り</span><span class="summaryhelp">借入返済を引いたあとの目安</span></div><b id="aCashAfterDebt">--</b></div>
+      <div class="small" style="margin-top:8px">借入返済は営業利益とは別に差し引いて表示します。</div>
       <div class="hr"></div>
       <div class="section-title">今月使っている金額</div>
       <div id="monthlyBreakdown"></div>
@@ -364,7 +366,7 @@ th:first-child,td:first-child{text-align:left}
       <div class="small">月末予測は「入力済み営業日の平均売上 × 想定営業日数」で計算します。</div>
       <div class="row">
         <div><label>目標原価率（%）</label><input type="number" id="targetCostRate" value="32" step="0.1"></div>
-        <div><label>目標人件費の割合（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
+        <div><label>目標人件費率（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
       </div>
       <div class="section-title" style="margin-top:18px">毎月かかるお金</div>
       <div class="small">家賃やリースなど、毎月だいたい同じ金額をここに入れておくと自動で計算します。</div>
@@ -385,7 +387,7 @@ th:first-child,td:first-child{text-align:left}
         <div><label>その他毎月経費</label><input type="number" id="otherMonthlyCost" value="0"></div>
       </div>
       <label>借入返済（月額）</label><input type="number" id="loan" value="90000">
-      <div class="small">借入元金の返済はお店に残る利益の経費には含めず、「返済後の資金余力」で別に確認します。</div>
+      <div class="small">借入元金の返済は営業利益には含めず、「返済後の残り」で別に確認します。</div>
       <button class="primary" id="saveSettings">設定を保存</button>
     </div>
 
@@ -777,7 +779,7 @@ function renderHome(){
         cls='notice bad';
       }
     }else if(s.purchaseRate>state.settings.targetCostRate+5){
-      msg=`仕入の割合が ${pct(s.purchaseRate)} と高めです。月末の在庫前なので原価率とは別ですが、仕入過多や在庫増加がないか確認してください。`;
+      msg=`仕入率が ${pct(s.purchaseRate)} と高めです。月末の在庫前なので原価率とは別ですが、仕入過多や在庫増加がないか確認してください。`;
       cls='notice';
     }else{
       msg=`${s.enteredSalesDays}営業日分では大きな崩れは見えていません。データが増えるほど月末予測の精度が上がります。`;
@@ -944,19 +946,19 @@ function renderAnalysis(){
   let msg='月次データを入れると診断します。',cls='notice good';
   if(s.sales>0){
     if(!s.hasStockData){
-      msg=`今月の仕入の割合は ${pct(s.purchaseRate)}。ただし仕入の割合と原価率は別です。月末の在庫を入れると実際の原価率が確定します。`;
+      msg=`今月の仕入率は ${pct(s.purchaseRate)}。仕入率と原価率は別です。月末の在庫を入れると実際の原価率が確定します。`;
       cls='notice';
     }else if(s.actualCostRate>state.settings.targetCostRate+3){
-      msg=`実際の原価率 ${pct(s.actualCostRate)}。目標 ${pct(state.settings.targetCostRate)} より高めです。仕入価格、廃棄、盛付量、値付けの順で確認すると原因を探しやすいです。`;
+      msg=`原価率 ${pct(s.actualCostRate)}。目標 ${pct(state.settings.targetCostRate)} より高めです。仕入価格、廃棄、盛付量、値付けの順で確認すると原因を探しやすいです。`;
       cls='notice bad';
     }else if(s.laborRate!=null && s.laborRate>state.settings.targetLaborRate+3){
-      msg=`原価は大きく崩れていませんが、人件費の割合 ${pct(s.laborRate)} が目標より高めです。人員削減より先に、弱い曜日・時間帯の売上を確認してください。`;
+      msg=`原価は大きく崩れていませんが、人件費率 ${pct(s.laborRate)} が目標より高めです。人員削減より先に、弱い曜日・時間帯の売上を確認してください。`;
       cls='notice';
     }else if(s.profit!=null && s.profit<0){
-      msg=`お店に残る利益が ${yen(s.profit)} の赤字です。売上・原価・人件費のうち、目標から最も離れている項目を優先して改善してください。`;
+      msg=`営業利益が ${yen(s.profit)} の赤字です。売上・原価・人件費のうち、目標から最も離れている項目を優先して改善してください。`;
       cls='notice bad';
     }else{
-      msg=`今月は大きな異常は見えていません。実際の原価率 ${pct(s.actualCostRate||0)}、人件費の割合 ${pct(s.laborRate||0)}、お店に残る利益 ${yen(s.profit||0)}。前月比較も合わせて確認してください。`;
+      msg=`今月は大きな異常は見えていません。原価率 ${pct(s.actualCostRate||0)}、人件費率 ${pct(s.laborRate||0)}、営業利益 ${yen(s.profit||0)}。前月比較も合わせて確認してください。`;
       cls='notice good';
     }
   }
