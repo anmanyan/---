@@ -291,6 +291,10 @@ th:first-child,td:first-child{text-align:left}
       <div class="help">毎日必須なのは「売上・客数・仕入」だけ。人件費やロスは必要な店だけ入力。</div>
     </div>
     <div class="card hero"><div class="label">今日の売上合計</div><div class="value" id="todayTotal">¥0</div></div>
+    <div class="card">
+      <div class="section-title">最近の入力</div>
+      <div id="recentDays"></div>
+    </div>
   </section>
 
   <section id="analysis" class="screen">
@@ -733,6 +737,74 @@ function renderAnalysis(){
   }
   monthlyAdvice.textContent=msg; monthlyAdvice.className=cls;
 }
+
+function setScreen(id){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  const target=$(id);
+  if(target) target.classList.add('active');
+
+  document.querySelectorAll('.tab').forEach(b=>{
+    b.classList.toggle('active',b.dataset.screen===id);
+  });
+
+  if(id==='welcome'){
+    bottomTabs.classList.add('hidden');
+  }else{
+    bottomTabs.classList.remove('hidden');
+  }
+
+  if(id==='home') renderHome();
+  if(id==='daily'){
+    loadDayForm(date.value);
+    renderRecent();
+  }
+  if(id==='analysis') renderAnalysis();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showAppHome(){
+  setScreen('home');
+}
+
+function initIntro(){
+  if(state.meta?.seenIntro){
+    showAppHome();
+  }else{
+    setScreen('welcome');
+  }
+}
+
+function renderRecent(){
+  if(!recentDays) return;
+  const rows=Object.entries(state.days||{})
+    .sort(([a],[b])=>b.localeCompare(a))
+    .slice(0,5);
+
+  recentDays.innerHTML='';
+  if(rows.length===0){
+    recentDays.innerHTML='<div class="small">まだ入力はありません。</div>';
+    return;
+  }
+
+  rows.forEach(([d,x])=>{
+    const total=(x.cash||0)+(x.card||0)+(x.qr||0)+(x.other||0);
+    const row=document.createElement('button');
+    row.className='summaryline';
+    row.style.width='100%';
+    row.style.background='transparent';
+    row.style.border='0';
+    row.style.textAlign='left';
+    row.style.padding='12px 0';
+    row.innerHTML=`<span>${d.slice(5).replace('-','/')}　客数 ${x.customers||0}人</span><b>${yen(total)}</b>`;
+    row.onclick=()=>{
+      date.value=d;
+      loadDayForm(d);
+      setScreen('daily');
+    };
+    recentDays.appendChild(row);
+  });
+}
+
 ['cash','card','qr','other'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   todayTotal.textContent=yen(num('cash')+num('card')+num('qr')+num('other'))
 }));
@@ -774,13 +846,13 @@ saveSettings.onclick=()=>{
   ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost','loan'].forEach(k=>state.settings[k]=num(k));
   persist(); renderHome(); renderAnalysis(); showToast('設定を保存しました');
 };
-replayIntro.onclick=()=>setScreen('welcome');
-startApp.onclick=()=>{
+if(replayIntro) replayIntro.onclick=()=>setScreen('welcome');
+if(startApp) startApp.onclick=()=>{
   state.meta.seenIntro=true;
   persist();
   showAppHome();
 };
-toggleGuide.onclick=()=>{
+if(toggleGuide && guideSteps) toggleGuide.onclick=()=>{
   guideSteps.classList.toggle('show');
   toggleGuide.textContent=guideSteps.classList.contains('show') ? '使い方を閉じる' : '使い方を見る';
 };
