@@ -795,6 +795,44 @@ function appendBreakdownRow(label,value,note=''){
   row.appendChild(right);
   monthlyBreakdown.appendChild(row);
 }
+
+function normalizeMonthOverrides(month){
+  const md=state.months[month];
+  if(!md) return false;
+
+  let changed=false;
+  const costs=md.costs||{};
+
+  monthlyCostKeys.forEach(k=>{
+    const mv=costs[k];
+    if(mv!==undefined && mv!==null && mv!==''){
+      const monthValue=Number(mv||0);
+      const normalValue=Number(state.settings[k]||0);
+      if(monthValue===normalValue){
+        costs[k]=null;
+        changed=true;
+      }
+    }
+  });
+
+  if(md.loan!==undefined && md.loan!==null && md.loan!==''){
+    const monthLoan=Number(md.loan||0);
+    const normalLoan=Number(state.settings.loan||0);
+    if(monthLoan===normalLoan){
+      md.loan=null;
+      changed=true;
+    }
+  }
+
+  md.costs=costs;
+
+  if(changed){
+    state.months[month]=md;
+    persist();
+  }
+  return changed;
+}
+
 function renderMonthlyBreakdown(month){
   monthlyBreakdown.innerHTML='';
   const md=state.months[month]||{};
@@ -847,7 +885,9 @@ function renderMonthlyBreakdown(month){
 }
 
 function renderAnalysis(){
-  const m=analysisMonth.value||ym(today),s=calcMonth(m);
+  const m=analysisMonth.value||ym(today);
+  normalizeMonthOverrides(m);
+  const s=calcMonth(m);
   aSales.textContent=yen(s.sales);
   aPurchases.textContent=yen(s.totalPurchases);
   aPurchaseRate.textContent=pct(s.purchaseRate);
@@ -913,6 +953,41 @@ saveDay.onclick=()=>{
 saveMonthly.onclick=()=>{
   const m=analysisMonth.value;
   if(!m) return alert('月を選んでください');
+
+  const normalCosts={
+    rent:Number(state.settings.rent||0),
+    lease:Number(state.settings.lease||0),
+    electricity:Number(state.settings.electricity||0),
+    gas:Number(state.settings.gas||0),
+    water:Number(state.settings.water||0),
+    insurance:Number(state.settings.insurance||0),
+    communication:Number(state.settings.communication||0),
+    otherMonthlyCost:Number(state.settings.otherMonthlyCost||0)
+  };
+
+  const monthCosts={
+    rent:mRent.value===''?null:num('mRent'),
+    lease:mLease.value===''?null:num('mLease'),
+    electricity:mElectricity.value===''?null:num('mElectricity'),
+    gas:mGas.value===''?null:num('mGas'),
+    water:mWater.value===''?null:num('mWater'),
+    insurance:mInsurance.value===''?null:num('mInsurance'),
+    communication:mCommunication.value===''?null:num('mCommunication'),
+    otherMonthlyCost:mOtherMonthlyCost.value===''?null:num('mOtherMonthlyCost')
+  };
+
+  // 通常額と同じなら月別上書きを保存しない。
+  Object.keys(monthCosts).forEach(k=>{
+    if(monthCosts[k]!==null && Number(monthCosts[k])===Number(normalCosts[k]||0)){
+      monthCosts[k]=null;
+    }
+  });
+
+  let monthLoan=mLoan.value===''?null:num('mLoan');
+  if(monthLoan!==null && Number(monthLoan)===Number(state.settings.loan||0)){
+    monthLoan=null;
+  }
+
   state.months[m]={
     ...(state.months[m]||{}),
     openingStock:num('openingStock'),
@@ -922,17 +997,11 @@ saveMonthly.onclick=()=>{
     stockConfirmed:true,
     costs:{
       ...((state.months[m]||{}).costs||{}),
-      rent:mRent.value===''?null:num('mRent'),
-      lease:mLease.value===''?null:num('mLease'),
-      electricity:mElectricity.value===''?null:num('mElectricity'),
-      gas:mGas.value===''?null:num('mGas'),
-      water:mWater.value===''?null:num('mWater'),
-      insurance:mInsurance.value===''?null:num('mInsurance'),
-      communication:mCommunication.value===''?null:num('mCommunication'),
-      otherMonthlyCost:mOtherMonthlyCost.value===''?null:num('mOtherMonthlyCost')
+      ...monthCosts
     },
-    loan:mLoan.value===''?null:num('mLoan')
+    loan:monthLoan
   };
+
   persist();
   renderAnalysis();
   renderHome();
