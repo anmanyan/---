@@ -422,6 +422,17 @@ th:first-child,td:first-child{text-align:left}
 </nav>
 
 <script>
+window.addEventListener('error',e=>{
+  try{
+    const t=document.getElementById('toast');
+    if(t){
+      t.textContent='起動エラーを検出しました。ページを再読み込みしてください。';
+      t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'),5000);
+    }
+  }catch(_){}
+});
+
 
 const KEY='restaurant-profit-navi';
 const defaultState={
@@ -431,21 +442,7 @@ const defaultState={
   meta:{seenIntro:false}
 };
 let state=load();
-// 旧版の「固定費」1項目から移行した金額を識別する。
 if(!state.meta) state.meta={};
-if(state.settings.fixed!=null && state.meta.legacyFixedMigrated!==true){
-  const legacy=Number(state.settings.fixed||0);
-  // 旧版から初回移行時のみ「その他毎月経費」に仮置き。
-  if((state.settings.otherMonthlyCost==null || Number(state.settings.otherMonthlyCost)===0) && legacy>0){
-    state.settings.otherMonthlyCost=legacy;
-    state.meta.legacyFixedMigrated=true;
-    state.meta.legacyFixedAmount=legacy;
-  }
-}
-
-if(state.settings.fixed!=null && state.settings.otherMonthlyCost==null){
-  state.settings.otherMonthlyCost=Number(state.settings.fixed||0);
-}
 ['rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost'].forEach(k=>{
   if(state.settings[k]==null) state.settings[k]=0;
 });
@@ -534,11 +531,10 @@ const toast=$('toast');
 
 function load(){
   const legacyKeys=[
+    KEY,
     'restaurant-profit-navi-v5',
     'restaurant-profit-navi-v4',
-    'restaurant-profit-navi-v3',
-    'restaurant-profit-navi',
-    KEY
+    'restaurant-profit-navi-v3'
   ];
 
   let found=null;
@@ -557,34 +553,32 @@ function load(){
     }catch(e){}
   }
 
-  const base=clone(defaults);
   const x=found||{};
-
   const merged={
     days:x.days||{},
     months:x.months||{},
-    settings:{...base.settings,...(x.settings||{})},
-    meta:{...base.meta,...(x.meta||{})}
+    settings:{...defaultState.settings,...(x.settings||{})},
+    meta:{...defaultState.meta,...(x.meta||{})}
   };
 
-  // 旧版の固定費1項目がある場合は、一旦「その他毎月経費」へ移す。
   if(x.settings && x.settings.fixed!=null){
     const legacyFixed=Number(x.settings.fixed||0);
-    const alreadyDetailed=['rent','lease','electricity','gas','water','insurance','communication']
+    const hasDetailed=['rent','lease','electricity','gas','water','insurance','communication']
       .some(k=>Number(merged.settings[k]||0)>0);
-    if(!alreadyDetailed && Number(merged.settings.otherMonthlyCost||0)===0 && legacyFixed>0){
+
+    if(!hasDetailed && Number(merged.settings.otherMonthlyCost||0)===0 && legacyFixed>0){
       merged.settings.otherMonthlyCost=legacyFixed;
       merged.meta.legacyFixedMigrated=true;
       merged.meta.legacyFixedAmount=legacyFixed;
     }
   }
 
-  // 旧キーから見つけたら現行キーへコピーして以後は一本化
+  merged.meta.migratedFrom=foundKey||KEY;
+
   try{
     localStorage.setItem(KEY,JSON.stringify(merged));
   }catch(e){}
 
-  merged.meta.migratedFrom=foundKey||KEY;
   return merged;
 }
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
