@@ -313,13 +313,16 @@ th:first-child,td:first-child{text-align:left}
       <div class="summaryline"><div class="summarylabel"><span>人件費率</span><span class="summaryhelp">売上に対する人件費</span></div><b id="aLaborRate">--</b></div>
       <div class="summaryline"><div class="summarylabel"><span>原価＋人件費率</span><span class="summaryhelp">原価と人件費を合わせた割合</span></div><b id="aFL">--</b></div>
       <div class="summaryline"><div class="summarylabel"><span>毎月の経費</span><span class="summaryhelp">家賃・リースなどの合計</span></div><b id="aMonthlyCosts">--</b></div>
+
+      <div style="padding:8px 0 4px 14px;border-left:3px solid #e5e7eb;margin:0 0 6px">
+        <div class="small" style="font-weight:800;color:var(--text);margin-bottom:4px">経費の内訳</div>
+        <div id="monthlyBreakdown"></div>
+        <div class="small" style="margin-top:6px">「通常額」は設定に登録した金額です。</div>
+      </div>
+
       <div class="summaryline"><div class="summarylabel"><span>営業利益</span><span class="summaryhelp">毎月の経費を引いたあとの利益</span></div><b id="aProfit">--</b></div>
+      <div class="summaryline"><div class="summarylabel"><span>借入返済</span><span class="summaryhelp">営業利益とは別に計算</span></div><b id="aLoanRepayment">¥0</b></div>
       <div class="summaryline"><div class="summarylabel"><span>返済後の残り</span><span class="summaryhelp">借入返済を引いたあとの目安</span></div><b id="aCashAfterDebt">--</b></div>
-      <div class="small" style="margin-top:8px">借入返済は営業利益とは別に差し引いて表示します。</div>
-      <div class="hr"></div>
-      <div class="section-title">今月使っている金額</div>
-      <div id="monthlyBreakdown"></div>
-      <div class="small" style="margin-top:8px">「通常額」は設定に登録した金額を自動適用しています。</div>
     </div>
 
     <div class="card">
@@ -346,9 +349,9 @@ th:first-child,td:first-child{text-align:left}
       </div>
       <div class="row">
         <div><label>通信・システム</label><input type="number" inputmode="numeric" id="mCommunication" placeholder="通常額"></div>
-        <div><label>その他毎月経費</label><input type="number" inputmode="numeric" id="mOtherMonthlyCost" placeholder="通常額"></div>
+        <div><label>その他の経費</label><input type="number" inputmode="numeric" id="mOtherMonthlyCost" placeholder="通常額"></div>
       </div>
-      <label>この月の借入返済</label><input type="number" inputmode="numeric" id="mLoan" placeholder="通常額">
+      <label>今月の借入返済</label><input type="number" inputmode="numeric" id="mLoan" placeholder="通常額">
       <button class="primary" id="saveMonthly">月次データを保存</button>
     </div>
 
@@ -384,7 +387,7 @@ th:first-child,td:first-child{text-align:left}
       </div>
       <div class="row">
         <div><label>通信・システム</label><input type="number" id="communication" value="0"></div>
-        <div><label>その他毎月経費</label><input type="number" id="otherMonthlyCost" value="0"></div>
+        <div><label>その他の経費</label><input type="number" id="otherMonthlyCost" value="0"></div>
       </div>
       <label>借入返済（月額）</label><input type="number" id="loan" value="90000">
       <div class="small">借入元金の返済は営業利益には含めず、「返済後の残り」で別に確認します。</div>
@@ -464,7 +467,7 @@ const KEY='restaurant-profit-navi';
 const defaultState={
   days:{},
   months:{},
-  settings:{goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,rent:0,lease:0,electricity:0,gas:0,water:0,insurance:0,communication:0,otherMonthlyCost:285000,loan:90000},
+  settings:{goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,rent:0,lease:0,electricity:0,gas:0,water:0,insurance:0,communication:0,otherMonthlyCost:0,loan:90000},
   meta:{seenIntro:false}
 };
 let state=load();
@@ -503,6 +506,7 @@ const aLaborRate=$('aLaborRate');
 const aFL=$('aFL');
 const aMonthlyCosts=$('aMonthlyCosts');
 const aProfit=$('aProfit');
+const aLoanRepayment=$('aLoanRepayment');
 const aCashAfterDebt=$('aCashAfterDebt');
 const monthlyBreakdown=$('monthlyBreakdown');
 const openingStock=$('openingStock');
@@ -864,17 +868,6 @@ function renderMonthlyBreakdown(month){
   const md=state.months[month]||{};
   const costs=md.costs||{};
   let count=0;
-  const add=(label,value,note='')=>{
-    const v=Number(value||0);
-    if(v===0) return;
-    appendBreakdownRow(label,v,note);
-    count++;
-  };
-
-  if(md.openingStock!==undefined && md.openingStock!==null && Number(md.openingStock)!==0) add('月初の在庫',md.openingStock);
-  if(md.monthlyExtraPurchase!==undefined && md.monthlyExtraPurchase!==null && Number(md.monthlyExtraPurchase)!==0) add('月まとめ仕入',md.monthlyExtraPurchase);
-  if(md.closingStock!==undefined && md.closingStock!==null && Number(md.closingStock)!==0) add('月末の在庫',md.closingStock);
-  if(md.monthlyLabor!==undefined && md.monthlyLabor!==null && Number(md.monthlyLabor)!==0) add('今月の人件費',md.monthlyLabor);
 
   const labels={
     rent:'家賃',
@@ -884,7 +877,7 @@ function renderMonthlyBreakdown(month){
     water:'水道',
     insurance:'保険',
     communication:'通信・システム',
-    otherMonthlyCost:'その他毎月経費'
+    otherMonthlyCost:'その他の経費'
   };
 
   monthlyCostKeys.forEach(k=>{
@@ -893,19 +886,16 @@ function renderMonthlyBreakdown(month){
     const normalValue=Number(state.settings[k]||0);
     const effective=hasMonthValue ? Number(monthValue||0) : normalValue;
     const note=(hasMonthValue && Number(monthValue||0)!==normalValue) ? 'この月' : '通常額';
-    if(effective!==0) add(labels[k],effective,note);
+    if(effective!==0){
+      appendBreakdownRow(labels[k],effective,note);
+      count++;
+    }
   });
-
-  const hasMonthLoan=md.loan!==undefined && md.loan!==null && md.loan!=='';
-  const normalLoan=Number(state.settings.loan||0);
-  const loanValue=hasMonthLoan ? Number(md.loan||0) : normalLoan;
-  const loanNote=(hasMonthLoan && Number(md.loan||0)!==normalLoan) ? 'この月' : '通常額';
-  if(loanValue!==0) add('借入返済',loanValue,loanNote);
 
   if(count===0){
     const empty=document.createElement('div');
     empty.className='small';
-    empty.textContent='この月に表示する入力項目はありません。';
+    empty.textContent='登録されている経費はありません。';
     monthlyBreakdown.appendChild(empty);
   }
 }
@@ -924,6 +914,10 @@ function renderAnalysis(){
   aFL.textContent=s.flRate==null ? '--' : pct(s.flRate);
   aMonthlyCosts.textContent=yen(s.monthlyCosts||0);
   aProfit.textContent=s.profit==null ? '--' : yen(s.profit);
+  const mdLoan=state.months[m]||{};
+  const hasMonthLoan=mdLoan.loan!==undefined && mdLoan.loan!==null && mdLoan.loan!=='';
+  const effectiveLoan=hasMonthLoan ? Number(mdLoan.loan||0) : Number(state.settings.loan||0);
+  aLoanRepayment.textContent=yen(effectiveLoan);
   aCashAfterDebt.textContent=s.cashAfterDebt==null ? '--' : yen(s.cashAfterDebt);
   renderMonthlyBreakdown(m);
 
