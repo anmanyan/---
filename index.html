@@ -397,10 +397,34 @@ th:first-child,td:first-child{text-align:left}
 
     <div class="card">
       <div class="section-title">バックアップ</div>
+      <div class="small" style="line-height:1.7;margin:8px 0 14px">
+        <strong>バックアップ推奨</strong><br>
+        月末・大きな設定変更前・機種変更前・全削除前には、
+        「書き出す」でバックアップを保存しておくと安心です。
+      </div>
+      <div style="background:#f6f8fb;border:1px solid #e3e8ef;border-radius:16px;padding:14px 16px;margin:0 0 16px">
+        <div style="font-weight:800;margin-bottom:8px">こんな時は</div>
+        <div class="small" style="line-height:1.75">
+          ・スマホを買い替える前 → <strong>書き出す</strong><br>
+          ・ブラウザの履歴やサイトデータを消す前 → <strong>書き出す</strong><br>
+          ・誤って削除した／別端末へ移したい → <strong>読み込む</strong><br>
+          ・全削除する前 → <strong>必ずバックアップ推奨</strong>
+        </div>
+      </div>
+      <div class="small" style="line-height:1.65;margin-bottom:14px">
+        データはこの端末のブラウザ内に保存されます。
+        ブラウザのサイトデータ削除や端末変更で消える場合があるため、
+        定期的なバックアップをおすすめします。
+      </div>
+
       <div class="actions">
         <button class="secondary" id="exportBtn">書き出す</button>
         <button class="secondary" id="importBtn">読み込む</button>
-        <button class="danger" id="resetBtn">全削除</button>
+        
+        <div class="small" style="grid-column:1/-1;color:#9b2c2c;font-weight:700;line-height:1.6;margin:4px 0 0">
+          全削除の前にバックアップをおすすめします。削除したデータは元に戻せません。
+        </div>
+<button class="danger" id="resetBtn">全削除</button>
       </div>
       <input type="file" id="fileInput" accept="application/json" hidden>
     </div>
@@ -1055,7 +1079,7 @@ fileInput.onchange=e=>{
   r.readAsText(f);
 };
 resetBtn.onclick=()=>{
-  if(confirm('すべてのデータを削除しますか？')){
+  if(confirm('すべての売上・月次・設定データを削除します。元に戻せません。\n\n削除する場合は「OK」を押してください。')){
     localStorage.removeItem(KEY);
     location.reload();
   }
