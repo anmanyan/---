@@ -317,7 +317,7 @@ th:first-child,td:first-child{text-align:left}
       <div style="padding:8px 0 4px 14px;border-left:3px solid #e5e7eb;margin:0 0 6px">
         <div class="small" style="font-weight:800;color:var(--text);margin-bottom:4px">経費の内訳</div>
         <div id="monthlyBreakdown"></div>
-        <div class="small" style="margin-top:6px">「通常額」は設定に登録した金額です。</div>
+        <div class="small" style="margin-top:6px">「通常額」は設定の金額。「今月だけ変更」は今月だけ変えた金額です。</div>
       </div>
 
       <div class="summaryline"><div class="summarylabel"><span>営業利益</span><span class="summaryhelp">毎月の経費を引いたあとの利益</span></div><b id="aProfit">--</b></div>
@@ -334,7 +334,11 @@ th:first-child,td:first-child{text-align:left}
       <label>今月の人件費（給与実額・任意）</label><input type="number" inputmode="numeric" id="monthlyLabor" placeholder="0">
 
       <div class="section-title" style="margin-top:20px">今月だけ変わる経費</div>
-      <div class="small">いつもと同じ金額なら空欄でOKです。今月だけ金額が違うときだけ入力してください。</div>
+      <div class="small" style="line-height:1.7">
+        毎月同じ金額の経費は<strong>「設定」</strong>で入力します。<br>
+        ここは、今月だけ金額が違うときだけ入力してください。
+      </div>
+      <button class="secondary" id="goRegularCosts" style="margin-top:10px">毎月の通常額を設定する</button>
       <div class="row">
         <div><label>家賃</label><input type="number" inputmode="numeric" id="mRent" placeholder="通常額"></div>
         <div><label>リース</label><input type="number" inputmode="numeric" id="mLease" placeholder="通常額"></div>
@@ -371,8 +375,8 @@ th:first-child,td:first-child{text-align:left}
         <div><label>目標原価率（%）</label><input type="number" id="targetCostRate" value="32" step="0.1"></div>
         <div><label>目標人件費率（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
       </div>
-      <div class="section-title" style="margin-top:18px">毎月かかるお金</div>
-      <div class="small">家賃やリースなど、毎月だいたい同じ金額をここに入れておくと自動で計算します。</div>
+      <div class="section-title" id="regularCostsSettings" style="margin-top:18px">毎月の通常額を入力</div>
+      <div class="small">家賃・リースなど、毎月いつもかかる金額をここに登録します。今月だけ違う金額は「今月のまとめ」で変更できます。</div>
       <div class="row">
         <div><label>家賃</label><input type="number" id="rent" value="0"></div>
         <div><label>リース</label><input type="number" id="lease" value="0"></div>
@@ -868,6 +872,7 @@ function renderMonthlyBreakdown(month){
   const md=state.months[month]||{};
   const costs=md.costs||{};
   let count=0;
+  let total=0;
 
   const labels={
     rent:'家賃',
@@ -885,9 +890,11 @@ function renderMonthlyBreakdown(month){
     const hasMonthValue=monthValue!==undefined && monthValue!==null && monthValue!=='';
     const normalValue=Number(state.settings[k]||0);
     const effective=hasMonthValue ? Number(monthValue||0) : normalValue;
-    const note=(hasMonthValue && Number(monthValue||0)!==normalValue) ? 'この月' : '通常額';
+    const note=(hasMonthValue && Number(monthValue||0)!==normalValue) ? '今月だけ変更' : '通常額';
+
     if(effective!==0){
       appendBreakdownRow(labels[k],effective,note);
+      total += effective;
       count++;
     }
   });
@@ -897,7 +904,15 @@ function renderMonthlyBreakdown(month){
     empty.className='small';
     empty.textContent='登録されている経費はありません。';
     monthlyBreakdown.appendChild(empty);
+    return;
   }
+
+  const totalRow=document.createElement('div');
+  totalRow.className='summaryline';
+  totalRow.style.marginTop='8px';
+  totalRow.style.borderTop='2px solid #d1d5db';
+  totalRow.innerHTML='<span style="font-weight:800">経費合計</span><b>'+yen(total)+'</b>';
+  monthlyBreakdown.appendChild(totalRow);
 }
 
 function renderAnalysis(){
@@ -957,6 +972,17 @@ function renderAnalysis(){
     }
   }
   monthlyAdvice.textContent=msg; monthlyAdvice.className=cls;
+}
+
+const goRegularCosts=$('goRegularCosts');
+if(goRegularCosts){
+  goRegularCosts.onclick=()=>{
+    setScreen('settings');
+    setTimeout(()=>{
+      const target=$('regularCostsSettings');
+      if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    },80);
+  };
 }
 ['cash','card','qr','other'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   todayTotal.textContent=yen(num('cash')+num('card')+num('qr')+num('other'))
