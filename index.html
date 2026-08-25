@@ -691,7 +691,8 @@ function setScreen(screenId){
 }
 function showAppHome(){setScreen('home')}
 function initIntro(){
-  if(state.meta.seenIntro){showAppHome()}
+  const INTRO_VERSION=2;
+  if(Number(state.meta?.introVersion||0)>=INTRO_VERSION){showAppHome()}
   else{setScreen('welcome')}
 }
 function showToast(message){
@@ -825,13 +826,17 @@ function renderMonthlyBreakdown(month){
   monthlyCostKeys.forEach(k=>{
     const monthValue=costs[k];
     const hasMonthValue=monthValue!==undefined && monthValue!==null && monthValue!=='';
-    const effective=hasMonthValue ? Number(monthValue||0) : Number(state.settings[k]||0);
-    if(effective!==0) add(labels[k],effective,hasMonthValue?'この月':'通常額');
+    const normalValue=Number(state.settings[k]||0);
+    const effective=hasMonthValue ? Number(monthValue||0) : normalValue;
+    const note=(hasMonthValue && Number(monthValue||0)!==normalValue) ? 'この月' : '通常額';
+    if(effective!==0) add(labels[k],effective,note);
   });
 
   const hasMonthLoan=md.loan!==undefined && md.loan!==null && md.loan!=='';
-  const loanValue=hasMonthLoan ? Number(md.loan||0) : Number(state.settings.loan||0);
-  if(loanValue!==0) add('借入返済',loanValue,hasMonthLoan?'この月':'通常額');
+  const normalLoan=Number(state.settings.loan||0);
+  const loanValue=hasMonthLoan ? Number(md.loan||0) : normalLoan;
+  const loanNote=(hasMonthLoan && Number(md.loan||0)!==normalLoan) ? 'この月' : '通常額';
+  if(loanValue!==0) add('借入返済',loanValue,loanNote);
 
   if(count===0){
     const empty=document.createElement('div');
@@ -940,9 +945,14 @@ saveSettings.onclick=()=>{
   ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost','loan'].forEach(k=>state.settings[k]=num(k));
   persist(); renderHome(); renderAnalysis(); showToast('設定を保存しました');
 };
-replayIntro.onclick=()=>setScreen('welcome');
+replayIntro.onclick=()=>{
+  state.meta.introVersion=0;
+  persist();
+  setScreen('welcome');
+};
 startApp.onclick=()=>{
   state.meta.seenIntro=true;
+  state.meta.introVersion=2;
   persist();
   showAppHome();
 };
