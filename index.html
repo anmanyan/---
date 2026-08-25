@@ -183,7 +183,7 @@ th:first-child,td:first-child{text-align:left}
               </svg>
             </div>
             <div class="feature-name">原価率</div>
-            <div class="feature-desc">実原価率を<br>自動で確認</div>
+            <div class="feature-desc">実際の原価率を<br>自動で確認</div>
           </div>
           <div class="feature-card feature-purple">
             <div class="feature-icon" aria-hidden="true">
@@ -217,7 +217,7 @@ th:first-child,td:first-child{text-align:left}
             <div class="step-no">2</div>
             <div class="step-text">
               <b>月末に棚卸と人件費を入力</b>
-              <span>月初棚卸・月末棚卸を入れると、実原価率と営業利益がより正確になります。</span>
+              <span>月初の在庫・月末の在庫を入れると、実際の原価率とお店に残る利益がより正確になります。</span>
             </div>
           </div>
           <div class="step">
@@ -237,18 +237,18 @@ th:first-child,td:first-child{text-align:left}
       <div class="label">今月の売上</div>
       <div class="value" id="monthSales">¥0</div>
       <div class="small" id="goalText">目標を設定してください</div>
-      <div class="bar" style="margin-top:12px"><span id="goalBar"></span></div><div class="quick-actions"><button class="quick-btn quick-entry" data-jump="daily">＋ 今日の数字を入力</button><button class="quick-btn quick-analysis" data-jump="analysis">今月を分析</button></div>
+      <div class="bar" style="margin-top:12px"><span id="goalBar"></span></div><div class="quick-actions"><button class="quick-btn quick-entry" data-jump="daily">＋ 今日の数字を入力</button><button class="quick-btn quick-analysis" data-jump="analysis">今月の数字を見る</button></div>
     </div>
 
     <div class="grid">
-      <div class="metric"><div class="k">月末売上予測</div><div class="v" id="forecast">--</div><div class="small" id="forecastConfidence">予測データなし</div></div>
-      <div class="metric"><div class="k">概算利益予測</div><div class="v" id="profitForecast">¥0</div></div>
-      <div class="metric"><div class="k">実原価率</div><div class="v" id="actualCostRate">--</div></div>
-      <div class="metric"><div class="k">FL比率</div><div class="v" id="flRate">--</div></div>
+      <div class="metric"><div class="k">このペースだと月末いくら？</div><div class="v" id="forecast">--</div><div class="small" id="forecastConfidence">予測データなし</div></div>
+      <div class="metric"><div class="k">このペースだと利益はいくら？</div><div class="v" id="profitForecast">¥0</div></div>
+      <div class="metric"><div class="k">実際の原価率</div><div class="v" id="actualCostRate">--</div></div>
+      <div class="metric"><div class="k">原価＋人件費の割合</div><div class="v" id="flRate">--</div></div>
     </div>
 
     <div class="card">
-      <div class="section-title">今月の診断</div>
+      <div class="section-title">今月のひとこと</div>
       <div id="advice" class="notice good">まずは今日の売上と仕入を入力してください。</div>
     </div>
 
@@ -256,7 +256,7 @@ th:first-child,td:first-child{text-align:left}
       <div class="section-title">前月と比べる</div>
       <div class="summaryline"><span>売上</span><b id="cmpSales">--</b></div>
       <div class="summaryline"><span>客単価</span><b id="cmpAvg">--</b></div>
-      <div class="summaryline"><span>仕入率</span><b id="cmpPurchase">--</b></div>
+      <div class="summaryline"><span>仕入の割合</span><b id="cmpPurchase">--</b></div>
       <div class="summaryline"><span>利益</span><b id="cmpProfit">--</b></div>
     </div>
 
@@ -299,37 +299,37 @@ th:first-child,td:first-child{text-align:left}
 
   <section id="analysis" class="screen">
     <div class="card">
-      <div class="section-title">月次まとめ</div>
-      <label>分析する月</label><input type="month" id="analysisMonth">
+      <div class="section-title">今月の収支まとめ</div>
+      <label>見たい月</label><input type="month" id="analysisMonth">
       <div class="hr"></div>
       <div class="summaryline"><span>売上</span><b id="aSales">¥0</b></div>
-      <div class="summaryline"><span>月間仕入</span><b id="aPurchases">¥0</b></div>
-      <div class="summaryline"><span>仕入率</span><b id="aPurchaseRate">0%</b></div>
+      <div class="summaryline"><span>今月の仕入</span><b id="aPurchases">¥0</b></div>
+      <div class="summaryline"><span>仕入の割合</span><b id="aPurchaseRate">0%</b></div>
       <div class="summaryline"><span>実原価</span><b id="aActualCost">--</b></div>
-      <div class="summaryline"><span>実原価率</span><b id="aActualCostRate">--</b></div>
-      <div class="summaryline"><span>粗利益</span><b id="aGrossProfit">--</b></div>
-      <div class="summaryline"><span>人件費率</span><b id="aLaborRate">--</b></div>
-      <div class="summaryline"><span>FL比率</span><b id="aFL">--</b></div>
-      <div class="summaryline"><span>毎月経費計（借入返済を除く）</span><b id="aMonthlyCosts">--</b></div>
-      <div class="summaryline"><span>営業利益</span><b id="aProfit">--</b></div>
-      <div class="summaryline"><span>借入返済後の資金余力</span><b id="aCashAfterDebt">--</b></div>
-      <div class="small" style="margin-top:8px">借入返済は営業利益とは別に差し引いて表示します。</div>
+      <div class="summaryline"><span>実際の原価率</span><b id="aActualCostRate">--</b></div>
+      <div class="summaryline"><span>売上から原価を引いた利益</span><b id="aGrossProfit">--</b></div>
+      <div class="summaryline"><span>人件費の割合</span><b id="aLaborRate">--</b></div>
+      <div class="summaryline"><span>原価＋人件費の割合</span><b id="aFL">--</b></div>
+      <div class="summaryline"><span>毎月かかるお金の合計</span><b id="aMonthlyCosts">--</b></div>
+      <div class="summaryline"><span>お店に残る利益</span><b id="aProfit">--</b></div>
+      <div class="summaryline"><span>返済後に残るお金</span><b id="aCashAfterDebt">--</b></div>
+      <div class="small" style="margin-top:8px">借入返済はお店に残る利益とは別に差し引いて表示します。</div>
       <div class="hr"></div>
-      <div class="section-title">入力・適用内訳</div>
+      <div class="section-title">今月使っている金額</div>
       <div id="monthlyBreakdown"></div>
       <div class="small" style="margin-top:8px">「通常額」は設定に登録した金額を自動適用しています。</div>
     </div>
 
     <div class="card">
-      <div class="section-title">月末だけ入力</div>
-      <label>月初棚卸</label><input type="number" inputmode="numeric" id="openingStock" placeholder="0">
-      <div class="help">前月の月末棚卸があれば自動で引き継ぎます。</div>
-      <label>月まとめ仕入（請求書分など）</label><input type="number" inputmode="numeric" id="monthlyExtraPurchase" placeholder="0">
-      <label>月末棚卸</label><input type="number" inputmode="numeric" id="closingStock" placeholder="0">
-      <label>月間人件費（給与実額・任意）</label><input type="number" inputmode="numeric" id="monthlyLabor" placeholder="0">
+      <div class="section-title">月末に入れる数字</div>
+      <label>月初の在庫</label><input type="number" inputmode="numeric" id="openingStock" placeholder="0">
+      <div class="help">前月の月末の在庫があれば自動で引き継ぎます。</div>
+      <label>月末にまとめて入れる仕入</label><input type="number" inputmode="numeric" id="monthlyExtraPurchase" placeholder="0">
+      <label>月末の在庫</label><input type="number" inputmode="numeric" id="closingStock" placeholder="0">
+      <label>今月の人件費（給与実額・任意）</label><input type="number" inputmode="numeric" id="monthlyLabor" placeholder="0">
 
-      <div class="section-title" style="margin-top:20px">この月の毎月経費</div>
-      <div class="small">空欄なら「設定」の通常額を使います。請求額が確定した月だけ実額を入れればOKです。</div>
+      <div class="section-title" style="margin-top:20px">今月だけ変わる経費</div>
+      <div class="small">いつもと同じ金額なら空欄でOKです。今月だけ金額が違うときだけ入力してください。</div>
       <div class="row">
         <div><label>家賃</label><input type="number" inputmode="numeric" id="mRent" placeholder="通常額"></div>
         <div><label>リース</label><input type="number" inputmode="numeric" id="mLease" placeholder="通常額"></div>
@@ -351,7 +351,7 @@ th:first-child,td:first-child{text-align:left}
     </div>
 
     <div class="card">
-      <div class="section-title">この月の診断</div>
+      <div class="section-title">今月のひとこと</div>
       <div id="monthlyAdvice" class="notice good">月次データを入れると診断します。</div>
     </div>
   </section>
@@ -364,10 +364,10 @@ th:first-child,td:first-child{text-align:left}
       <div class="small">月末予測は「入力済み営業日の平均売上 × 想定営業日数」で計算します。</div>
       <div class="row">
         <div><label>目標原価率（%）</label><input type="number" id="targetCostRate" value="32" step="0.1"></div>
-        <div><label>目標人件費率（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
+        <div><label>目標人件費の割合（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
       </div>
-      <div class="section-title" style="margin-top:18px">毎月経費の通常額</div>
-      <div class="small">月ごとの実額を入れない場合、ここに登録した通常額で利益予測します。</div>
+      <div class="section-title" style="margin-top:18px">毎月かかるお金</div>
+      <div class="small">家賃やリースなど、毎月だいたい同じ金額をここに入れておくと自動で計算します。</div>
       <div class="row">
         <div><label>家賃</label><input type="number" id="rent" value="0"></div>
         <div><label>リース</label><input type="number" id="lease" value="0"></div>
@@ -385,7 +385,7 @@ th:first-child,td:first-child{text-align:left}
         <div><label>その他毎月経費</label><input type="number" id="otherMonthlyCost" value="0"></div>
       </div>
       <label>借入返済（月額）</label><input type="number" id="loan" value="90000">
-      <div class="small">借入元金の返済は営業利益の経費には含めず、「返済後の資金余力」で別に確認します。</div>
+      <div class="small">借入元金の返済はお店に残る利益の経費には含めず、「返済後の資金余力」で別に確認します。</div>
       <button class="primary" id="saveSettings">設定を保存</button>
     </div>
 
@@ -396,33 +396,33 @@ th:first-child,td:first-child{text-align:left}
     </div>
 
     <div class="card">
-      <div class="section-title">バックアップ</div>
+      <div class="section-title">データのバックアップ</div>
       <div class="small" style="line-height:1.7;margin:8px 0 14px">
-        <strong>バックアップ推奨</strong><br>
+        <strong>データのバックアップを取っておくと安心です</strong><br>
         月末・大きな設定変更前・機種変更前・全削除前には、
-        「書き出す」でバックアップを保存しておくと安心です。
+        「バックアップを取る」でデータのバックアップを保存しておくと安心です。
       </div>
       <div style="background:#f6f8fb;border:1px solid #e3e8ef;border-radius:16px;padding:14px 16px;margin:0 0 16px">
         <div style="font-weight:800;margin-bottom:8px">こんな時は</div>
         <div class="small" style="line-height:1.75">
-          ・スマホを買い替える前 → <strong>書き出す</strong><br>
-          ・ブラウザの履歴やサイトデータを消す前 → <strong>書き出す</strong><br>
-          ・誤って削除した／別端末へ移したい → <strong>読み込む</strong><br>
-          ・全削除する前 → <strong>必ずバックアップ推奨</strong>
+          ・スマホを買い替える前 → <strong>バックアップを取る</strong><br>
+          ・ブラウザの履歴やサイトデータを消す前 → <strong>バックアップを取る</strong><br>
+          ・誤って削除した／別端末へ移したい → <strong>バックアップを読み込む</strong><br>
+          ・全削除する前 → <strong>必ずデータのバックアップを取っておくと安心です</strong>
         </div>
       </div>
       <div class="small" style="line-height:1.65;margin-bottom:14px">
         データはこの端末のブラウザ内に保存されます。
         ブラウザのサイトデータ削除や端末変更で消える場合があるため、
-        定期的なバックアップをおすすめします。
+        定期的なデータのバックアップをおすすめします。
       </div>
 
       <div class="actions">
-        <button class="secondary" id="exportBtn">書き出す</button>
-        <button class="secondary" id="importBtn">読み込む</button>
+        <button class="secondary" id="exportBtn">バックアップを取る</button>
+        <button class="secondary" id="importBtn">バックアップを読み込む</button>
         
         <div class="small" style="grid-column:1/-1;color:#9b2c2c;font-weight:700;line-height:1.6;margin:4px 0 0">
-          全削除の前にバックアップをおすすめします。削除したデータは元に戻せません。
+          全削除の前にデータのバックアップをおすすめします。削除したデータは元に戻せません。
         </div>
 <button class="danger" id="resetBtn">全削除</button>
       </div>
@@ -439,8 +439,8 @@ th:first-child,td:first-child{text-align:left}
 <nav id="bottomTabs" class="tabs hidden">
   <div class="wrap">
     <button class="tab" data-screen="home">ホーム</button>
-    <button class="tab" data-screen="daily">今日入力</button>
-    <button class="tab" data-screen="analysis">分析</button>
+    <button class="tab" data-screen="daily">今日の入力</button>
+    <button class="tab" data-screen="analysis">今月のまとめ</button>
     <button class="tab" data-screen="settings">設定</button>
   </div>
 </nav>
@@ -777,7 +777,7 @@ function renderHome(){
         cls='notice bad';
       }
     }else if(s.purchaseRate>state.settings.targetCostRate+5){
-      msg=`仕入率が ${pct(s.purchaseRate)} と高めです。月末棚卸前なので原価率とは別ですが、仕入過多や在庫増加がないか確認してください。`;
+      msg=`仕入の割合が ${pct(s.purchaseRate)} と高めです。月末の在庫前なので原価率とは別ですが、仕入過多や在庫増加がないか確認してください。`;
       cls='notice';
     }else{
       msg=`${s.enteredSalesDays}営業日分では大きな崩れは見えていません。データが増えるほど月末予測の精度が上がります。`;
@@ -869,10 +869,10 @@ function renderMonthlyBreakdown(month){
     count++;
   };
 
-  if(md.openingStock!==undefined && md.openingStock!==null && Number(md.openingStock)!==0) add('月初棚卸',md.openingStock);
+  if(md.openingStock!==undefined && md.openingStock!==null && Number(md.openingStock)!==0) add('月初の在庫',md.openingStock);
   if(md.monthlyExtraPurchase!==undefined && md.monthlyExtraPurchase!==null && Number(md.monthlyExtraPurchase)!==0) add('月まとめ仕入',md.monthlyExtraPurchase);
-  if(md.closingStock!==undefined && md.closingStock!==null && Number(md.closingStock)!==0) add('月末棚卸',md.closingStock);
-  if(md.monthlyLabor!==undefined && md.monthlyLabor!==null && Number(md.monthlyLabor)!==0) add('月間人件費',md.monthlyLabor);
+  if(md.closingStock!==undefined && md.closingStock!==null && Number(md.closingStock)!==0) add('月末の在庫',md.closingStock);
+  if(md.monthlyLabor!==undefined && md.monthlyLabor!==null && Number(md.monthlyLabor)!==0) add('今月の人件費',md.monthlyLabor);
 
   const labels={
     rent:'家賃',
@@ -915,7 +915,7 @@ function renderAnalysis(){
   aSales.textContent=yen(s.sales);
   aPurchases.textContent=yen(s.totalPurchases);
   aPurchaseRate.textContent=pct(s.purchaseRate);
-  aActualCost.textContent=s.actualCost==null ? '月末棚卸で確定' : yen(s.actualCost);
+  aActualCost.textContent=s.actualCost==null ? '月末の在庫で確定' : yen(s.actualCost);
   aActualCostRate.textContent=s.actualCostRate==null ? '--' : pct(s.actualCostRate);
   aGrossProfit.textContent=s.grossProfit==null ? '--' : yen(s.grossProfit);
   aLaborRate.textContent=s.laborRate==null ? '--' : pct(s.laborRate);
@@ -944,19 +944,19 @@ function renderAnalysis(){
   let msg='月次データを入れると診断します。',cls='notice good';
   if(s.sales>0){
     if(!s.hasStockData){
-      msg=`今月の仕入率は ${pct(s.purchaseRate)}。ただし仕入率と原価率は別です。月末棚卸を入れると実原価率が確定します。`;
+      msg=`今月の仕入の割合は ${pct(s.purchaseRate)}。ただし仕入の割合と原価率は別です。月末の在庫を入れると実際の原価率が確定します。`;
       cls='notice';
     }else if(s.actualCostRate>state.settings.targetCostRate+3){
-      msg=`実原価率 ${pct(s.actualCostRate)}。目標 ${pct(state.settings.targetCostRate)} より高めです。仕入価格、廃棄、盛付量、値付けの順で確認すると原因を探しやすいです。`;
+      msg=`実際の原価率 ${pct(s.actualCostRate)}。目標 ${pct(state.settings.targetCostRate)} より高めです。仕入価格、廃棄、盛付量、値付けの順で確認すると原因を探しやすいです。`;
       cls='notice bad';
     }else if(s.laborRate!=null && s.laborRate>state.settings.targetLaborRate+3){
-      msg=`原価は大きく崩れていませんが、人件費率 ${pct(s.laborRate)} が目標より高めです。人員削減より先に、弱い曜日・時間帯の売上を確認してください。`;
+      msg=`原価は大きく崩れていませんが、人件費の割合 ${pct(s.laborRate)} が目標より高めです。人員削減より先に、弱い曜日・時間帯の売上を確認してください。`;
       cls='notice';
     }else if(s.profit!=null && s.profit<0){
-      msg=`営業利益が ${yen(s.profit)} の赤字です。売上・原価・人件費のうち、目標から最も離れている項目を優先して改善してください。`;
+      msg=`お店に残る利益が ${yen(s.profit)} の赤字です。売上・原価・人件費のうち、目標から最も離れている項目を優先して改善してください。`;
       cls='notice bad';
     }else{
-      msg=`今月は大きな異常は見えていません。実原価率 ${pct(s.actualCostRate||0)}、人件費率 ${pct(s.laborRate||0)}、営業利益 ${yen(s.profit||0)}。前月比較も合わせて確認してください。`;
+      msg=`今月は大きな異常は見えていません。実際の原価率 ${pct(s.actualCostRate||0)}、人件費の割合 ${pct(s.laborRate||0)}、お店に残る利益 ${yen(s.profit||0)}。前月比較も合わせて確認してください。`;
       cls='notice good';
     }
   }
