@@ -423,7 +423,7 @@ th:first-child,td:first-child{text-align:left}
 
 <script>
 
-const KEY='restaurant-profit-navi-v3';
+const KEY='restaurant-profit-navi';
 const defaultState={
   days:{},
   months:{},
@@ -533,17 +533,59 @@ const toast=$('toast');
 
 
 function load(){
-  try{
-    const d=JSON.parse(localStorage.getItem(KEY)||'{}');
-    return {
-      days:d.days||{},
-      months:d.months||{},
-      settings:{...defaultState.settings,...(d.settings||{})},
-      meta:{...defaultState.meta,...(d.meta||{})}
-    };
-  }catch{
-    return JSON.parse(JSON.stringify(defaultState));
+  const legacyKeys=[
+    'restaurant-profit-navi-v5',
+    'restaurant-profit-navi-v4',
+    'restaurant-profit-navi-v3',
+    'restaurant-profit-navi',
+    KEY
+  ];
+
+  let found=null;
+  let foundKey=null;
+
+  for(const k of legacyKeys){
+    try{
+      const raw=localStorage.getItem(k);
+      if(!raw) continue;
+      const parsed=JSON.parse(raw);
+      if(parsed && (parsed.days || parsed.months || parsed.settings)){
+        found=parsed;
+        foundKey=k;
+        break;
+      }
+    }catch(e){}
   }
+
+  const base=clone(defaults);
+  const x=found||{};
+
+  const merged={
+    days:x.days||{},
+    months:x.months||{},
+    settings:{...base.settings,...(x.settings||{})},
+    meta:{...base.meta,...(x.meta||{})}
+  };
+
+  // 旧版の固定費1項目がある場合は、一旦「その他毎月経費」へ移す。
+  if(x.settings && x.settings.fixed!=null){
+    const legacyFixed=Number(x.settings.fixed||0);
+    const alreadyDetailed=['rent','lease','electricity','gas','water','insurance','communication']
+      .some(k=>Number(merged.settings[k]||0)>0);
+    if(!alreadyDetailed && Number(merged.settings.otherMonthlyCost||0)===0 && legacyFixed>0){
+      merged.settings.otherMonthlyCost=legacyFixed;
+      merged.meta.legacyFixedMigrated=true;
+      merged.meta.legacyFixedAmount=legacyFixed;
+    }
+  }
+
+  // 旧キーから見つけたら現行キーへコピーして以後は一本化
+  try{
+    localStorage.setItem(KEY,JSON.stringify(merged));
+  }catch(e){}
+
+  merged.meta.migratedFrom=foundKey||KEY;
+  return merged;
 }
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
 if(state.meta?.legacyFixedMigrated===true){persist();} // migration state
@@ -820,12 +862,14 @@ saveDay.onclick=()=>{
 saveMonthly.onclick=()=>{
   const m=analysisMonth.value; if(!m) return alert('月を選んでください');
   state.months[m]={
+    ...(state.months[m]||{}),
     openingStock:num('openingStock'),
     monthlyExtraPurchase:num('monthlyExtraPurchase'),
     closingStock:num('closingStock'),
     monthlyLabor:num('monthlyLabor'),
     stockConfirmed:true,
     costs:{
+      ...((state.months[m]||{}).costs||{}),
       rent:mRent.value===''?null:num('mRent'),
       lease:mLease.value===''?null:num('mLease'),
       electricity:mElectricity.value===''?null:num('mElectricity'),
