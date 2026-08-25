@@ -595,6 +595,29 @@ function load(){
       merged.meta.legacyFixedAmount=legacyFixed;
     }
   }
+
+  // One-time cleanup for the known old 285,000-yen fixed-cost migration bug.
+  // Only runs when detailed recurring costs already exist, so normal new data is untouched.
+  const detailedRecurringKeys=['rent','lease','electricity','gas','water','insurance','communication'];
+  const hasDetailedRecurring=detailedRecurringKeys.some(k=>Number(merged.settings[k]||0)>0);
+  if(
+    hasDetailedRecurring &&
+    Number(merged.settings.otherMonthlyCost||0)===285000 &&
+    merged.meta.legacy285CleanupDone!==true
+  ){
+    merged.settings.otherMonthlyCost=0;
+
+    Object.keys(merged.months||{}).forEach(month=>{
+      const md=merged.months[month];
+      if(md && md.costs && Number(md.costs.otherMonthlyCost||0)===285000){
+        md.costs.otherMonthlyCost=null;
+      }
+    });
+
+    merged.meta.legacy285CleanupDone=true;
+    merged.meta.legacy285CleanupAt=new Date().toISOString();
+  }
+
   merged.meta.migratedFrom=foundKey||KEY;
   try{ localStorage.setItem(KEY,JSON.stringify(merged)); }catch(e){}
   return merged;
