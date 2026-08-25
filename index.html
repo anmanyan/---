@@ -317,7 +317,7 @@ th:first-child,td:first-child{text-align:left}
       <div style="padding:8px 0 4px 14px;border-left:3px solid #e5e7eb;margin:0 0 6px">
         <div class="small" style="font-weight:800;color:var(--text);margin-bottom:4px">経費の内訳</div>
         <div id="monthlyBreakdown"></div>
-        <div class="small" style="margin-top:6px">「通常額」は設定の金額。「今月だけ変更」は今月だけ変えた金額です。</div>
+        <div class="small" style="margin-top:6px">「通常」は設定の金額。「今月変更」は今月だけ変えた金額です。</div>
       </div>
 
       <div class="summaryline"><div class="summarylabel"><span>営業利益</span><span class="summaryhelp">毎月の経費を引いたあとの利益</span></div><b id="aProfit">--</b></div>
@@ -912,8 +912,13 @@ function renderMonthlyBreakdown(month){
     const monthValue=costs[k];
     const hasMonthValue=monthValue!==undefined && monthValue!==null && monthValue!=='';
     const normalValue=Number(state.settings[k]||0);
-    const effective=hasMonthValue ? Number(monthValue||0) : normalValue;
-    const note=(hasMonthValue && Number(monthValue||0)!==normalValue) ? '今月だけ変更' : '通常額';
+    const monthNum=Number(monthValue||0);
+
+    // If the month value is the same as the normal setting,
+    // display/use it as a normal amount rather than a monthly override.
+    const isRealOverride=hasMonthValue && monthNum!==normalValue;
+    const effective=isRealOverride ? monthNum : normalValue;
+    const note=isRealOverride ? '今月変更' : '通常';
 
     if(effective!==0){
       appendBreakdownRow(labels[k],effective,note);
