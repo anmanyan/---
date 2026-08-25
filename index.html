@@ -306,9 +306,14 @@ th:first-child,td:first-child{text-align:left}
       <div class="summaryline"><span>粗利益</span><b id="aGrossProfit">--</b></div>
       <div class="summaryline"><span>人件費率</span><b id="aLaborRate">--</b></div>
       <div class="summaryline"><span>FL比率</span><b id="aFL">--</b></div>
-      <div class="summaryline"><span>毎月経費計</span><b id="aMonthlyCosts">--</b></div>
+      <div class="summaryline"><span>毎月経費計（借入返済を除く）</span><b id="aMonthlyCosts">--</b></div>
       <div class="summaryline"><span>営業利益</span><b id="aProfit">--</b></div>
       <div class="summaryline"><span>借入返済後の資金余力</span><b id="aCashAfterDebt">--</b></div>
+      <div class="small" style="margin-top:8px">借入返済は営業利益とは別に差し引いて表示します。</div>
+      <div class="hr"></div>
+      <div class="section-title">入力・適用内訳</div>
+      <div id="monthlyBreakdown"></div>
+      <div class="small" style="margin-top:8px">「通常額」は設定に登録した金額を自動適用しています。</div>
     </div>
 
     <div class="card">
@@ -458,6 +463,7 @@ const aFL=$('aFL');
 const aMonthlyCosts=$('aMonthlyCosts');
 const aProfit=$('aProfit');
 const aCashAfterDebt=$('aCashAfterDebt');
+const monthlyBreakdown=$('monthlyBreakdown');
 const openingStock=$('openingStock');
 const monthlyExtraPurchase=$('monthlyExtraPurchase');
 const closingStock=$('closingStock');
@@ -708,6 +714,73 @@ function renderHome(){
     miniChart.appendChild(c);
   });
 }
+
+function appendBreakdownRow(label,value,note=''){
+  const row=document.createElement('div');
+  row.className='summaryline';
+  const left=document.createElement('span');
+  left.textContent=label;
+  const right=document.createElement('b');
+  right.textContent=yen(value);
+  if(note){
+    const tag=document.createElement('span');
+    tag.className='pill';
+    tag.style.marginLeft='6px';
+    tag.style.fontSize='10px';
+    tag.textContent=note;
+    right.appendChild(tag);
+  }
+  row.appendChild(left);
+  row.appendChild(right);
+  monthlyBreakdown.appendChild(row);
+}
+function renderMonthlyBreakdown(month){
+  monthlyBreakdown.innerHTML='';
+  const md=state.months[month]||{};
+  const costs=md.costs||{};
+  let count=0;
+  const add=(label,value,note='')=>{
+    const v=Number(value||0);
+    if(v===0) return;
+    appendBreakdownRow(label,v,note);
+    count++;
+  };
+
+  if(md.openingStock!==undefined && md.openingStock!==null && Number(md.openingStock)!==0) add('月初棚卸',md.openingStock);
+  if(md.monthlyExtraPurchase!==undefined && md.monthlyExtraPurchase!==null && Number(md.monthlyExtraPurchase)!==0) add('月まとめ仕入',md.monthlyExtraPurchase);
+  if(md.closingStock!==undefined && md.closingStock!==null && Number(md.closingStock)!==0) add('月末棚卸',md.closingStock);
+  if(md.monthlyLabor!==undefined && md.monthlyLabor!==null && Number(md.monthlyLabor)!==0) add('月間人件費',md.monthlyLabor);
+
+  const labels={
+    rent:'家賃',
+    lease:'リース',
+    electricity:'電気',
+    gas:'ガス',
+    water:'水道',
+    insurance:'保険',
+    communication:'通信・システム',
+    otherMonthlyCost:'その他毎月経費'
+  };
+
+  monthlyCostKeys.forEach(k=>{
+    const monthValue=costs[k];
+    const hasMonthValue=monthValue!==undefined && monthValue!==null && monthValue!=='';
+    const effective=hasMonthValue ? Number(monthValue||0) : Number(state.settings[k]||0);
+    if(effective!==0) add(labels[k],effective,hasMonthValue?'この月':'通常額');
+  });
+
+  const hasMonthLoan=md.loan!==undefined && md.loan!==null && md.loan!=='';
+  const loanValue=hasMonthLoan ? Number(md.loan||0) : Number(state.settings.loan||0);
+  if(loanValue!==0) add('借入返済',loanValue,hasMonthLoan?'この月':'通常額');
+
+  if(count===0){
+    const empty=document.createElement('div');
+    empty.className='small';
+    empty.textContent='この月に表示する入力項目はありません。';
+    monthlyBreakdown.appendChild(empty);
+  }
+}
+
 function renderAnalysis(){
   const m=analysisMonth.value||ym(today),s=calcMonth(m);
   aSales.textContent=yen(s.sales);
@@ -718,8 +791,10 @@ function renderAnalysis(){
   aGrossProfit.textContent=s.grossProfit==null ? '--' : yen(s.grossProfit);
   aLaborRate.textContent=s.laborRate==null ? '--' : pct(s.laborRate);
   aFL.textContent=s.flRate==null ? '--' : pct(s.flRate);
+  aMonthlyCosts.textContent=yen(s.monthlyCosts||0);
   aProfit.textContent=s.profit==null ? '--' : yen(s.profit);
   aCashAfterDebt.textContent=s.cashAfterDebt==null ? '--' : yen(s.cashAfterDebt);
+  renderMonthlyBreakdown(m);
 
   const md=state.months[m]||{}, prev=state.months[previousMonth(m)]||{};
   openingStock.value=md.openingStock ?? prev.closingStock ?? 0;
@@ -777,7 +852,18 @@ saveMonthly.onclick=()=>{
     monthlyExtraPurchase:num('monthlyExtraPurchase'),
     closingStock:num('closingStock'),
     monthlyLabor:num('monthlyLabor'),
-    stockConfirmed:true
+    stockConfirmed:true,
+    costs:{
+      rent:mRent.value===''?null:num('mRent'),
+      lease:mLease.value===''?null:num('mLease'),
+      electricity:mElectricity.value===''?null:num('mElectricity'),
+      gas:mGas.value===''?null:num('mGas'),
+      water:mWater.value===''?null:num('mWater'),
+      insurance:mInsurance.value===''?null:num('mInsurance'),
+      communication:mCommunication.value===''?null:num('mCommunication'),
+      otherMonthlyCost:mOtherMonthlyCost.value===''?null:num('mOtherMonthlyCost')
+    },
+    loan:mLoan.value===''?null:num('mLoan')
   };
   persist(); renderAnalysis(); renderHome(); showToast('月次データを保存しました');
 };
