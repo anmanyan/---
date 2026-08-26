@@ -118,14 +118,15 @@ th:first-child,td:first-child{text-align:left}
 @media(max-width:430px){.row{grid-template-columns:1fr 1fr}.card{padding:15px}.hero .value{font-size:31px}}
 
 .chart-wrap{height:220px;position:relative;margin-top:10px}
+.weekly-chart-wrap{height:190px;margin-top:6px}
 .expense-chart-wrap{height:auto;min-height:360px}
 .chart-empty{height:170px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--sub);font-size:13px;padding:16px}
 
-.native-bars{height:100%;display:flex;align-items:flex-end;gap:10px;padding:14px 8px 28px;border-bottom:1px solid #dfe3e8}
-.native-bar-col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
-.native-bar{width:70%;min-height:2px;background:#111827;border-radius:8px 8px 3px 3px}
-.native-bar-value{font-size:9px;color:var(--sub);white-space:nowrap}
-.native-bar-label{font-size:11px;color:var(--sub);white-space:nowrap}
+.native-bars{height:100%;display:flex;align-items:flex-end;gap:12px;padding:8px 10px 18px;border-bottom:1px solid #dfe3e8}
+.native-bar-col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.native-bar{width:58%;min-height:3px;background:#111827;border-radius:9px 9px 3px 3px}
+.native-bar-value{font-size:10px;color:var(--sub);white-space:nowrap;font-weight:700}
+.native-bar-label{font-size:11px;color:var(--sub);white-space:nowrap;font-weight:700}
 .native-line-svg{width:100%;height:185px;display:block}
 .native-line-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 8px}
 .native-donut-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:10px 0 4px}
@@ -136,6 +137,9 @@ th:first-child,td:first-child{text-align:left}
 .native-legend-dot{width:10px;height:10px;border-radius:50%}
 
 @media(max-width:390px){
+  .weekly-chart-wrap{height:180px}
+  .native-bars{gap:8px;padding-left:6px;padding-right:6px}
+  .native-bar-value{font-size:9px}
   .native-legend{gap:9px 10px;font-size:11px}
   .native-donut{width:128px;height:128px}
   .native-donut::after{inset:27px}
@@ -293,7 +297,7 @@ th:first-child,td:first-child{text-align:left}
     <div class="card">
       <div class="section-title">週ごとの売上</div>
       <div class="small">今月の売上を週ごとに比べます。</div>
-      <div class="chart-wrap" id="weeklySalesChart"></div>
+      <div class="chart-wrap weekly-chart-wrap" id="weeklySalesChart"></div>
       <div class="chart-empty" id="weeklySalesEmpty" style="display:none">売上を入力すると表示されます。</div>
     </div>
 
@@ -818,7 +822,7 @@ function monthKeyLocal(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 }
 function yenShort(v){
-  return '¥'+Math.round(Number(v||0)).toLocaleString('ja-JP');
+  const n=Math.round(Number(v||0)); return n===0?'¥0':'¥'+n.toLocaleString('ja-JP');
 }
 function renderWeeklySalesChart(){
   const box=$('weeklySalesChart'),empty=$('weeklySalesEmpty');
@@ -834,7 +838,7 @@ function renderWeeklySalesChart(){
   if(!ok){box.innerHTML='';return;}
   const max=Math.max(...vals,1);
   box.innerHTML='<div class="native-bars">'+vals.map((v,i)=>{
-    const h=Math.max(2,Math.round((v/max)*145));
+    const h=Math.max(3,Math.round((v/max)*112));
     return '<div class="native-bar-col"><div class="native-bar-value">'+yenShort(v)+'</div><div class="native-bar" style="height:'+h+'px"></div><div class="native-bar-label">'+(i+1)+'週</div></div>';
   }).join('')+'</div>';
 }
