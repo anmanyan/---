@@ -123,14 +123,14 @@ th:first-child,td:first-child{text-align:left}
 .native-bars{height:100%;display:flex;align-items:flex-end;gap:10px;padding:14px 8px 28px;border-bottom:1px solid #dfe3e8}
 .native-bar-col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
 .native-bar{width:70%;min-height:2px;background:#111827;border-radius:8px 8px 3px 3px}
-.native-bar-value{font-size:10px;color:var(--sub);white-space:nowrap}
+.native-bar-value{font-size:9px;color:var(--sub);white-space:nowrap}
 .native-bar-label{font-size:11px;color:var(--sub);white-space:nowrap}
 .native-line-svg{width:100%;height:185px;display:block}
 .native-line-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 8px}
 .native-donut-wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
 .native-donut{width:150px;height:150px;border-radius:50%;position:relative}
 .native-donut::after{content:"";position:absolute;inset:32px;background:#fff;border-radius:50%}
-.native-legend{display:flex;flex-direction:column;gap:8px;font-size:12px}
+.native-legend{display:flex;flex-direction:column;gap:8px;font-size:12px;min-width:190px}
 .native-legend-row{display:flex;align-items:center;gap:8px}
 .native-legend-dot{width:10px;height:10px;border-radius:50%}
 
@@ -299,7 +299,7 @@ th:first-child,td:first-child{text-align:left}
 
     <div class="card">
       <div class="section-title">今月のお金の内訳</div>
-      <div class="small">仕入・人件費・毎月の経費の割合です。</div>
+      <div class="small">今月使っているお金を項目ごとに色分けして、割合で確認できます。</div>
       <div class="chart-wrap" id="expensePieChart"></div>
       <div class="chart-empty" id="expensePieEmpty" style="display:none">仕入・人件費・経費を入力すると表示されます。</div>
     </div>
@@ -811,9 +811,7 @@ function monthKeyLocal(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 }
 function yenShort(v){
-  if(v>=1000000) return '¥'+(v/1000000).toFixed(v%1000000?1:0)+'M';
-  if(v>=1000) return '¥'+Math.round(v/1000)+'k';
-  return '¥'+Math.round(v);
+  return '¥'+Math.round(Number(v||0)).toLocaleString('ja-JP');
 }
 function renderWeeklySalesChart(){
   const box=$('weeklySalesChart'),empty=$('weeklySalesEmpty');
@@ -856,21 +854,89 @@ function renderMonthlySalesChart(){
 function renderExpensePieChart(){
   const box=$('expensePieChart'),empty=$('expensePieEmpty');
   if(!box)return;
-  const key=monthKeyLocal(new Date()),md=state.months[key]||{},costs=md.costs||{};
-  const monthDays=allDays().filter(row=>{const dt=dateOfDay(row);return dt&&monthKeyLocal(dt)===key;});
-  const purchase=monthDays.reduce((a,row)=>{const d=row.data||row;return a+Number(d.purchase||d.purchases||0)},0)+Number(md.monthlyExtraPurchase||0);
-  const labor=(md.monthlyLabor!==undefined&&md.monthlyLabor!==null&&md.monthlyLabor!=='')?Number(md.monthlyLabor||0):monthDays.reduce((a,row)=>{const d=row.data||row;return a+Number(d.laborDay||d.labor||0)},0);
-  const keys=['rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost'];
-  const recurring=keys.reduce((a,k)=>{const v=(costs[k]!==undefined&&costs[k]!==null&&costs[k]!=='')?costs[k]:state.settings[k];return a+Number(v||0)},0);
-  const data=[['仕入',purchase],['人件費',labor],['毎月の経費',recurring]].filter(x=>x[1]>0);
-  const total=data.reduce((a,x)=>a+x[1],0),ok=total>0;
-  box.style.display=ok?'block':'none';empty.style.display=ok?'none':'flex';
-  if(!ok){box.innerHTML='';return;}
-  const palette=['#111827','#4b5563','#9ca3af'];
-  let acc=0;const stops=[];
-  data.forEach((x,i)=>{const st=(acc/total)*360;acc+=x[1];const en=(acc/total)*360;stops.push(palette[i]+' '+st+'deg '+en+'deg');});
-  box.innerHTML='<div class="native-donut-wrap"><div class="native-donut" style="background:conic-gradient('+stops.join(',')+')"></div><div class="native-legend">'+data.map((x,i)=>'<div class="native-legend-row"><span class="native-legend-dot" style="background:'+palette[i]+'"></span><span>'+x[0]+' '+yen(x[1])+'</span></div>').join('')+'</div></div>';
+
+  const key=monthKeyLocal(new Date());
+  const md=state.months[key]||{};
+  const costs=md.costs||{};
+  const monthDays=allDays().filter(row=>{
+    const dt=dateOfDay(row);
+    return dt&&monthKeyLocal(dt)===key;
+  });
+
+  const purchase=
+    monthDays.reduce((a,row)=>{
+      const d=row.data||row;
+      return a+Number(d.purchase||d.purchases||0);
+    },0)+Number(md.monthlyExtraPurchase||0);
+
+  const labor=
+    (md.monthlyLabor!==undefined&&md.monthlyLabor!==null&&md.monthlyLabor!=='')
+      ? Number(md.monthlyLabor||0)
+      : monthDays.reduce((a,row)=>{
+          const d=row.data||row;
+          return a+Number(d.laborDay||d.labor||0);
+        },0);
+
+  const effectiveCost=(k)=>{
+    const v=(costs[k]!==undefined&&costs[k]!==null&&costs[k]!=='')
+      ? costs[k]
+      : state.settings[k];
+    return Number(v||0);
+  };
+
+  const data=[
+    ['仕入',purchase],
+    ['人件費',labor],
+    ['家賃',effectiveCost('rent')],
+    ['リース',effectiveCost('lease')],
+    ['電気',effectiveCost('electricity')],
+    ['ガス',effectiveCost('gas')],
+    ['水道',effectiveCost('water')],
+    ['保険',effectiveCost('insurance')],
+    ['通信・システム',effectiveCost('communication')],
+    ['その他',effectiveCost('otherMonthlyCost')]
+  ].filter(x=>x[1]>0);
+
+  const total=data.reduce((a,x)=>a+x[1],0);
+  const ok=total>0;
+
+  box.style.display=ok?'block':'none';
+  empty.style.display=ok?'none':'flex';
+  if(!ok){
+    box.innerHTML='';
+    return;
+  }
+
+  const palette=[
+    '#111827','#2563eb','#16a34a','#f59e0b','#dc2626',
+    '#7c3aed','#0891b2','#db2777','#65a30d','#6b7280'
+  ];
+
+  let acc=0;
+  const stops=[];
+  data.forEach((x,i)=>{
+    const st=(acc/total)*360;
+    acc+=x[1];
+    const en=(acc/total)*360;
+    stops.push(palette[i%palette.length]+' '+st+'deg '+en+'deg');
+  });
+
+  box.innerHTML=
+    '<div class="native-donut-wrap">'+
+      '<div class="native-donut" style="background:conic-gradient('+stops.join(',')+')"></div>'+
+      '<div class="native-legend">'+
+        data.map((x,i)=>{
+          const pct=(x[1]/total*100);
+          const pctText=(pct>=10?pct.toFixed(1):pct.toFixed(1))+'%';
+          return '<div class="native-legend-row">'+
+            '<span class="native-legend-dot" style="background:'+palette[i%palette.length]+'"></span>'+
+            '<span><b>'+x[0]+'</b> '+yen(x[1])+' <span style="color:var(--sub)">('+pctText+')</span></span>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+    '</div>';
 }
+
 function renderHomeCharts(){
   renderWeeklySalesChart();
   renderMonthlySalesChart();
