@@ -292,11 +292,11 @@ th:first-child,td:first-child{text-align:left}
     </div>
 
     <div class="card">
-      <div class="section-title">前月と比べる</div>
-      <div class="summaryline"><span>売上</span><b id="cmpSales">--</b></div>
-      <div class="summaryline"><span>客単価</span><b id="cmpAvg">--</b></div>
-      <div class="summaryline"><span>仕入率</span><b id="cmpPurchase">--</b></div>
-      <div class="summaryline"><span>利益</span><b id="cmpProfit">--</b></div>
+      <div class="section-title">前月と比べる</div><div class="small" style="margin-bottom:8px">前月と比べています</div>
+      <div class="summaryline"><span>売上</span><b id="cmpSales">比較データなし</b></div>
+      <div class="summaryline"><span>客単価</span><b id="cmpAvg">比較データなし</b></div>
+      <div class="summaryline"><span>仕入率</span><b id="cmpPurchase">比較データなし</b></div>
+      <div class="summaryline"><span>利益</span><b id="cmpProfit">比較データなし</b></div>
     </div>
 
     
@@ -762,13 +762,19 @@ function currentForecast(){
   const confidence=enteredSalesDays>=8 ? '高' : enteredSalesDays>=3 ? '中' : enteredSalesDays>=1 ? '低' : 'なし';
   return {...s,forecast,profitForecast,enteredSalesDays,assumedOpenDays,avgSalesPerEnteredDay,confidence};
 }
-function deltaText(cur,prev,isRate=false){
-  if(prev===null||prev===undefined||prev===0)return '--';
-  const diff=cur-prev;
-  const rel=isRate ? diff : (diff/Math.abs(prev)*100);
-  const cls=diff>=0 ? 'up' : 'down';
-  const sign=diff>=0 ? '+' : '';
-  return `<span class="delta ${cls}">${sign}${isRate?diff.toFixed(1)+'pt':rel.toFixed(1)+'%'}</span>`;
+function deltaText(cur,prev,reverse=false){
+  if(cur===null||cur===undefined||!Number.isFinite(Number(cur))||
+     prev===null||prev===undefined||!Number.isFinite(Number(prev))||Number(prev)===0){
+    return '<span style="color:var(--sub)">比較データなし</span>';
+  }
+  const rel=(Number(cur)-Number(prev))/Math.abs(Number(prev))*100;
+  if(Math.abs(rel)<0.05){
+    return '<span style="color:var(--sub)">0.0%</span>';
+  }
+  const good=reverse ? rel<0 : rel>0;
+  const cls=good ? 'up' : 'down';
+  const sign=rel>0 ? '+' : '';
+  return `<span class="delta ${cls}">${sign}${rel.toFixed(1)}%</span>`;
 }
 function setScreen(screenId){
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
@@ -1007,8 +1013,8 @@ function renderHome(){
   const prev=calcMonth(previousMonth(ym(today)));
   cmpSales.innerHTML=deltaText(s.sales,prev.sales);
   cmpAvg.innerHTML=deltaText(s.avgSpend,prev.avgSpend);
-  cmpPurchase.innerHTML=(prev.purchaseRate ? deltaText(s.purchaseRate,prev.purchaseRate,true) : '--');
-  cmpProfit.innerHTML=(s.profit!=null&&prev.profit!=null ? deltaText(s.profit,prev.profit) : '--');
+  cmpPurchase.innerHTML=deltaText(s.purchaseRate,prev.purchaseRate,true);
+  cmpProfit.innerHTML=deltaText(s.profit,prev.profit);
 
   let msg='まずは今日の売上と仕入を入力してください。',cls='notice good';
   if(s.enteredSalesDays===1){
