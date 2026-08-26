@@ -119,6 +119,21 @@ th:first-child,td:first-child{text-align:left}
 
 .chart-wrap{height:220px;position:relative;margin-top:10px}
 .chart-empty{height:170px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--sub);font-size:13px;padding:16px}
+
+.native-bars{height:100%;display:flex;align-items:flex-end;gap:10px;padding:14px 8px 28px;border-bottom:1px solid #dfe3e8}
+.native-bar-col{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.native-bar{width:70%;min-height:2px;background:#111827;border-radius:8px 8px 3px 3px}
+.native-bar-value{font-size:10px;color:var(--sub);white-space:nowrap}
+.native-bar-label{font-size:11px;color:var(--sub);white-space:nowrap}
+.native-line-svg{width:100%;height:185px;display:block}
+.native-line-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 8px}
+.native-donut-wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
+.native-donut{width:150px;height:150px;border-radius:50%;position:relative}
+.native-donut::after{content:"";position:absolute;inset:32px;background:#fff;border-radius:50%}
+.native-legend{display:flex;flex-direction:column;gap:8px;font-size:12px}
+.native-legend-row{display:flex;align-items:center;gap:8px}
+.native-legend-dot{width:10px;height:10px;border-radius:50%}
+
 </style>
 </head>
 <body>
@@ -271,21 +286,21 @@ th:first-child,td:first-child{text-align:left}
     <div class="card">
       <div class="section-title">週ごとの売上</div>
       <div class="small">今月の売上を週ごとに比べます。</div>
-      <div class="chart-wrap"><canvas id="weeklySalesChart"></canvas></div>
+      <div class="chart-wrap" id="weeklySalesChart"></div>
       <div class="chart-empty" id="weeklySalesEmpty" style="display:none">売上を入力すると表示されます。</div>
     </div>
 
     <div class="card">
       <div class="section-title">月ごとの売上</div>
       <div class="small">直近6か月の売上の流れを見ます。</div>
-      <div class="chart-wrap"><canvas id="monthlySalesChart"></canvas></div>
+      <div class="chart-wrap" id="monthlySalesChart"></div>
       <div class="chart-empty" id="monthlySalesEmpty" style="display:none">データがたまると表示されます。</div>
     </div>
 
     <div class="card">
       <div class="section-title">今月のお金の内訳</div>
       <div class="small">仕入・人件費・毎月の経費の割合です。</div>
-      <div class="chart-wrap"><canvas id="expensePieChart"></canvas></div>
+      <div class="chart-wrap" id="expensePieChart"></div>
       <div class="chart-empty" id="expensePieEmpty" style="display:none">仕入・人件費・経費を入力すると表示されます。</div>
     </div>
 </section>
@@ -455,8 +470,6 @@ th:first-child,td:first-child{text-align:left}
     <button class="tab" data-screen="settings">設定</button>
   </div>
 </nav>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 window.addEventListener('error',e=>{
   try{
@@ -778,107 +791,86 @@ function renderRecent(){
   });
 }
 
-let weeklySalesChartObj=null, monthlySalesChartObj=null, expensePieChartObj=null;
-
-function chartDestroy(c){ if(c && typeof c.destroy==='function') c.destroy(); }
 
 function allDays(){
-  if(Array.isArray(state.days)){
-    return state.days.map(d=>({date:d.date||d.day||d.entryDate||'',data:d}));
-  }
-  if(state.days && typeof state.days==='object'){
-    return Object.entries(state.days).map(([date,data])=>({date,data}));
-  }
+  if(Array.isArray(state.days)) return state.days.map(d=>({date:d.date||d.day||d.entryDate||'',data:d}));
+  if(state.days && typeof state.days==='object') return Object.entries(state.days).map(([date,data])=>({date,data}));
   return [];
 }
-
 function salesOfDay(row){
   const d=row.data||row;
   return Number(d.cash||0)+Number(d.card||0)+Number(d.qr||0)+Number(d.other||0);
 }
-
 function dateOfDay(row){
   const raw=row.date || row.data?.date || row.data?.day || row.data?.entryDate;
   if(!raw) return null;
   const x=new Date(raw+'T00:00:00');
-  return Number.isNaN(x.getTime()) ? null : x;
+  return Number.isNaN(x.getTime())?null:x;
 }
-
 function monthKeyLocal(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 }
-
+function yenShort(v){
+  if(v>=1000000) return '¥'+(v/1000000).toFixed(v%1000000?1:0)+'M';
+  if(v>=1000) return '¥'+Math.round(v/1000)+'k';
+  return '¥'+Math.round(v);
+}
 function renderWeeklySalesChart(){
-  const c=$('weeklySalesChart'), e=$('weeklySalesEmpty');
-  if(!c || typeof Chart==='undefined') return;
-  const now=new Date(), key=monthKeyLocal(now), vals=[0,0,0,0,0];
-  allDays().forEach(d=>{
-    const dt=dateOfDay(d);
-    if(!dt || monthKeyLocal(dt)!==key) return;
-    vals[Math.min(4,Math.floor((dt.getDate()-1)/7))]+=salesOfDay(d);
+  const box=$('weeklySalesChart'),empty=$('weeklySalesEmpty');
+  if(!box)return;
+  const now=new Date(),key=monthKeyLocal(now),vals=[0,0,0,0,0];
+  allDays().forEach(row=>{
+    const dt=dateOfDay(row);
+    if(!dt||monthKeyLocal(dt)!==key)return;
+    vals[Math.min(4,Math.floor((dt.getDate()-1)/7))]+=salesOfDay(row);
   });
   const ok=vals.some(v=>v>0);
-  c.parentElement.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
-  chartDestroy(weeklySalesChartObj);
-  if(!ok) return;
-  weeklySalesChartObj=new Chart(c,{
-    type:'bar',
-    data:{labels:['1週目','2週目','3週目','4週目','5週目'],datasets:[{data:vals,label:'売上'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'¥'+Number(v).toLocaleString('ja-JP')}}}}
-  });
+  box.style.display=ok?'block':'none'; empty.style.display=ok?'none':'flex';
+  if(!ok){box.innerHTML='';return;}
+  const max=Math.max(...vals,1);
+  box.innerHTML='<div class="native-bars">'+vals.map((v,i)=>{
+    const h=Math.max(2,Math.round((v/max)*145));
+    return '<div class="native-bar-col"><div class="native-bar-value">'+yenShort(v)+'</div><div class="native-bar" style="height:'+h+'px"></div><div class="native-bar-label">'+(i+1)+'週</div></div>';
+  }).join('')+'</div>';
 }
-
 function renderMonthlySalesChart(){
-  const c=$('monthlySalesChart'), e=$('monthlySalesEmpty');
-  if(!c || typeof Chart==='undefined') return;
-  const now=new Date(), list=[];
+  const box=$('monthlySalesChart'),empty=$('monthlySalesEmpty');
+  if(!box)return;
+  const now=new Date(),list=[];
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     list.push({key:monthKeyLocal(d),label:(d.getMonth()+1)+'月',value:0});
   }
-  const map={}; list.forEach((x,i)=>map[x.key]=i);
-  allDays().forEach(d=>{
-    const dt=dateOfDay(d); if(!dt) return;
-    const k=monthKeyLocal(dt); if(map[k]!==undefined) list[map[k]].value+=salesOfDay(d);
+  const map={};list.forEach((x,i)=>map[x.key]=i);
+  allDays().forEach(row=>{
+    const dt=dateOfDay(row);if(!dt)return;
+    const k=monthKeyLocal(dt);if(map[k]!==undefined)list[map[k]].value+=salesOfDay(row);
   });
   const ok=list.some(x=>x.value>0);
-  c.parentElement.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
-  chartDestroy(monthlySalesChartObj);
-  if(!ok) return;
-  monthlySalesChartObj=new Chart(c,{
-    type:'line',
-    data:{labels:list.map(x=>x.label),datasets:[{data:list.map(x=>x.value),label:'売上',tension:.25}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'¥'+Number(v).toLocaleString('ja-JP')}}}}
-  });
+  box.style.display=ok?'block':'none';empty.style.display=ok?'none':'flex';
+  if(!ok){box.innerHTML='';return;}
+  const w=320,h=170,pad=18,max=Math.max(...list.map(x=>x.value),1);
+  const pts=list.map((x,i)=>({x:pad+i*((w-pad*2)/(list.length-1)),y:h-pad-(x.value/max)*(h-pad*2),v:x.value,label:x.label}));
+  box.innerHTML='<svg class="native-line-svg" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><line x1="'+pad+'" y1="'+(h-pad)+'" x2="'+(w-pad)+'" y2="'+(h-pad)+'" stroke="#dfe3e8" stroke-width="1"/><polyline points="'+pts.map(p=>p.x+','+p.y).join(' ')+'" fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+pts.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#111827"><title>'+p.label+' '+yen(p.v)+'</title></circle>').join('')+'</svg><div class="native-line-labels">'+list.map(x=>'<span>'+x.label+'</span>').join('')+'</div>';
 }
-
 function renderExpensePieChart(){
-  const c=$('expensePieChart'), e=$('expensePieEmpty');
-  if(!c || typeof Chart==='undefined') return;
-  const key=monthKeyLocal(new Date()), md=state.months[key]||{}, costs=md.costs||{};
-  const monthDays=allDays().filter(d=>{const dt=dateOfDay(d); return dt && monthKeyLocal(dt)===key;});
+  const box=$('expensePieChart'),empty=$('expensePieEmpty');
+  if(!box)return;
+  const key=monthKeyLocal(new Date()),md=state.months[key]||{},costs=md.costs||{};
+  const monthDays=allDays().filter(row=>{const dt=dateOfDay(row);return dt&&monthKeyLocal(dt)===key;});
   const purchase=monthDays.reduce((a,row)=>{const d=row.data||row;return a+Number(d.purchase||d.purchases||0)},0)+Number(md.monthlyExtraPurchase||0);
-  const labor=(md.monthlyLabor!==undefined && md.monthlyLabor!==null && md.monthlyLabor!=='')
-    ? Number(md.monthlyLabor||0)
-    : monthDays.reduce((a,row)=>{const d=row.data||row;return a+Number(d.laborDay||d.labor||0)},0);
+  const labor=(md.monthlyLabor!==undefined&&md.monthlyLabor!==null&&md.monthlyLabor!=='')?Number(md.monthlyLabor||0):monthDays.reduce((a,row)=>{const d=row.data||row;return a+Number(d.laborDay||d.labor||0)},0);
   const keys=['rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost'];
-  const recurring=keys.reduce((a,k)=>{
-    const v=(costs[k]!==undefined && costs[k]!==null && costs[k]!=='') ? costs[k] : state.settings[k];
-    return a+Number(v||0);
-  },0);
-  const labels=[], vals=[];
-  [['仕入',purchase],['人件費',labor],['毎月の経費',recurring]].forEach(([l,v])=>{if(v>0){labels.push(l);vals.push(v);}});
-  const ok=vals.length>0;
-  c.parentElement.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
-  chartDestroy(expensePieChartObj);
-  if(!ok) return;
-  expensePieChartObj=new Chart(c,{
-    type:'doughnut',
-    data:{labels:labels,datasets:[{data:vals}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:x=>x.label+': ¥'+Number(x.raw).toLocaleString('ja-JP')}}}}
-  });
+  const recurring=keys.reduce((a,k)=>{const v=(costs[k]!==undefined&&costs[k]!==null&&costs[k]!=='')?costs[k]:state.settings[k];return a+Number(v||0)},0);
+  const data=[['仕入',purchase],['人件費',labor],['毎月の経費',recurring]].filter(x=>x[1]>0);
+  const total=data.reduce((a,x)=>a+x[1],0),ok=total>0;
+  box.style.display=ok?'block':'none';empty.style.display=ok?'none':'flex';
+  if(!ok){box.innerHTML='';return;}
+  const palette=['#111827','#4b5563','#9ca3af'];
+  let acc=0;const stops=[];
+  data.forEach((x,i)=>{const st=(acc/total)*360;acc+=x[1];const en=(acc/total)*360;stops.push(palette[i]+' '+st+'deg '+en+'deg');});
+  box.innerHTML='<div class="native-donut-wrap"><div class="native-donut" style="background:conic-gradient('+stops.join(',')+')"></div><div class="native-legend">'+data.map((x,i)=>'<div class="native-legend-row"><span class="native-legend-dot" style="background:'+palette[i]+'"></span><span>'+x[0]+' '+yen(x[1])+'</span></div>').join('')+'</div></div>';
 }
-
 function renderHomeCharts(){
   renderWeeklySalesChart();
   renderMonthlySalesChart();
