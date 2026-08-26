@@ -118,6 +118,7 @@ th:first-child,td:first-child{text-align:left}
 @media(max-width:430px){.row{grid-template-columns:1fr 1fr}.card{padding:15px}.hero .value{font-size:31px}}
 
 .chart-wrap{height:220px;position:relative;margin-top:10px}
+.expense-chart-wrap{height:auto;min-height:360px}
 .chart-empty{height:170px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--sub);font-size:13px;padding:16px}
 
 .native-bars{height:100%;display:flex;align-items:flex-end;gap:10px;padding:14px 8px 28px;border-bottom:1px solid #dfe3e8}
@@ -127,13 +128,19 @@ th:first-child,td:first-child{text-align:left}
 .native-bar-label{font-size:11px;color:var(--sub);white-space:nowrap}
 .native-line-svg{width:100%;height:185px;display:block}
 .native-line-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);padding:0 8px}
-.native-donut-wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
-.native-donut{width:150px;height:150px;border-radius:50%;position:relative}
-.native-donut::after{content:"";position:absolute;inset:32px;background:#fff;border-radius:50%}
-.native-legend{display:flex;flex-direction:column;gap:8px;font-size:12px;min-width:190px}
-.native-legend-row{display:flex;align-items:center;gap:8px}
+.native-donut-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:10px 0 4px}
+.native-donut{width:138px;height:138px;border-radius:50%;position:relative;flex:0 0 auto}
+.native-donut::after{content:"";position:absolute;inset:29px;background:#fff;border-radius:50%}
+.native-legend{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;font-size:12px}
+.native-legend-row{display:flex;align-items:flex-start;gap:7px;min-width:0;line-height:1.35}
 .native-legend-dot{width:10px;height:10px;border-radius:50%}
 
+@media(max-width:390px){
+  .native-legend{gap:9px 10px;font-size:11px}
+  .native-donut{width:128px;height:128px}
+  .native-donut::after{inset:27px}
+  .expense-chart-wrap{min-height:350px}
+}
 </style>
 </head>
 <body>
@@ -300,7 +307,7 @@ th:first-child,td:first-child{text-align:left}
     <div class="card">
       <div class="section-title">今月のお金の内訳</div>
       <div class="small">今月使っているお金を項目ごとに色分けして、割合で確認できます。</div>
-      <div class="chart-wrap" id="expensePieChart"></div>
+      <div class="chart-wrap expense-chart-wrap" id="expensePieChart"></div>
       <div class="chart-empty" id="expensePieEmpty" style="display:none">仕入・人件費・経費を入力すると表示されます。</div>
     </div>
 </section>
@@ -930,7 +937,7 @@ function renderExpensePieChart(){
           const pctText=(pct>=10?pct.toFixed(1):pct.toFixed(1))+'%';
           return '<div class="native-legend-row">'+
             '<span class="native-legend-dot" style="background:'+palette[i%palette.length]+'"></span>'+
-            '<span><b>'+x[0]+'</b> '+yen(x[1])+' <span style="color:var(--sub)">('+pctText+')</span></span>'+
+            '<span style="min-width:0"><b>'+x[0]+'</b><br>'+yen(x[1])+' <span style="color:var(--sub)">('+pctText+')</span></span>'+
           '</div>';
         }).join('')+
       '</div>'+
