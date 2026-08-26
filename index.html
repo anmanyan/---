@@ -119,6 +119,7 @@ th:first-child,td:first-child{text-align:left}
 
 .chart-wrap{height:220px;position:relative;margin-top:10px}
 .weekly-chart-wrap{height:190px;margin-top:6px}
+.monthly-chart-wrap{height:175px;margin-top:6px}
 .expense-chart-wrap{height:auto;min-height:360px}
 .chart-empty{height:170px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--sub);font-size:13px;padding:16px}
 
@@ -137,6 +138,8 @@ th:first-child,td:first-child{text-align:left}
 .native-legend-dot{width:10px;height:10px;border-radius:50%}
 
 @media(max-width:390px){
+  .monthly-chart-wrap{height:168px}
+  .monthly-value-row span{font-size:8px}
   .weekly-chart-wrap{height:180px}
   .native-bars{gap:8px;padding-left:6px;padding-right:6px}
   .native-bar-value{font-size:9px}
@@ -145,6 +148,10 @@ th:first-child,td:first-child{text-align:left}
   .native-donut::after{inset:27px}
   .expense-chart-wrap{min-height:350px}
 }
+
+.monthly-value-row{display:flex;justify-content:space-between;gap:4px;margin-top:-4px;padding:0 6px}
+.monthly-value-row span{flex:1;text-align:center;font-size:9px;color:var(--sub);white-space:nowrap}
+
 </style>
 </head>
 <body>
@@ -304,7 +311,7 @@ th:first-child,td:first-child{text-align:left}
     <div class="card">
       <div class="section-title">月ごとの売上</div>
       <div class="small">直近6か月の売上の流れを見ます。</div>
-      <div class="chart-wrap" id="monthlySalesChart"></div>
+      <div class="chart-wrap monthly-chart-wrap" id="monthlySalesChart"></div>
       <div class="chart-empty" id="monthlySalesEmpty" style="display:none">データがたまると表示されます。</div>
     </div>
 
@@ -845,22 +852,52 @@ function renderWeeklySalesChart(){
 function renderMonthlySalesChart(){
   const box=$('monthlySalesChart'),empty=$('monthlySalesEmpty');
   if(!box)return;
+
   const now=new Date(),list=[];
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     list.push({key:monthKeyLocal(d),label:(d.getMonth()+1)+'月',value:0});
   }
-  const map={};list.forEach((x,i)=>map[x.key]=i);
+
+  const map={};
+  list.forEach((x,i)=>map[x.key]=i);
+
   allDays().forEach(row=>{
-    const dt=dateOfDay(row);if(!dt)return;
-    const k=monthKeyLocal(dt);if(map[k]!==undefined)list[map[k]].value+=salesOfDay(row);
+    const dt=dateOfDay(row);
+    if(!dt)return;
+    const k=monthKeyLocal(dt);
+    if(map[k]!==undefined)list[map[k]].value+=salesOfDay(row);
   });
+
   const ok=list.some(x=>x.value>0);
-  box.style.display=ok?'block':'none';empty.style.display=ok?'none':'flex';
-  if(!ok){box.innerHTML='';return;}
-  const w=320,h=170,pad=18,max=Math.max(...list.map(x=>x.value),1);
-  const pts=list.map((x,i)=>({x:pad+i*((w-pad*2)/(list.length-1)),y:h-pad-(x.value/max)*(h-pad*2),v:x.value,label:x.label}));
-  box.innerHTML='<svg class="native-line-svg" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><line x1="'+pad+'" y1="'+(h-pad)+'" x2="'+(w-pad)+'" y2="'+(h-pad)+'" stroke="#dfe3e8" stroke-width="1"/><polyline points="'+pts.map(p=>p.x+','+p.y).join(' ')+'" fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+pts.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#111827"><title>'+p.label+' '+yen(p.v)+'</title></circle>').join('')+'</svg><div class="native-line-labels">'+list.map(x=>'<span>'+x.label+'</span>').join('')+'</div>';
+  box.style.display=ok?'block':'none';
+  empty.style.display=ok?'none':'flex';
+  if(!ok){
+    box.innerHTML='';
+    return;
+  }
+
+  const w=320,h=132,padX=18,padY=16;
+  const max=Math.max(...list.map(x=>x.value),1);
+  const pts=list.map((x,i)=>({
+    x:padX+i*((w-padX*2)/(list.length-1)),
+    y:h-padY-(x.value/max)*(h-padY*2),
+    v:x.value,
+    label:x.label
+  }));
+
+  box.innerHTML=
+    '<svg class="native-line-svg" style="height:132px" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
+      '<line x1="'+padX+'" y1="'+(h-padY)+'" x2="'+(w-padX)+'" y2="'+(h-padY)+'" stroke="#dfe3e8" stroke-width="1"/>'+
+      '<polyline points="'+pts.map(p=>p.x+','+p.y).join(' ')+'" fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+
+      pts.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#111827"></circle>').join('')+
+    '</svg>'+
+    '<div class="monthly-value-row">'+
+      list.map(x=>'<span>'+yenShort(x.value)+'</span>').join('')+
+    '</div>'+
+    '<div class="native-line-labels">'+
+      list.map(x=>'<span>'+x.label+'</span>').join('')+
+    '</div>';
 }
 function renderExpensePieChart(){
   const box=$('expensePieChart'),empty=$('expensePieEmpty');
