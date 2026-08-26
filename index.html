@@ -923,7 +923,7 @@ function renderHome(){
   advice.textContent=msg;
   advice.className=cls;
 
-  miniChart.innerHTML='';
+  if(miniChart) if(miniChart) miniChart.innerHTML='';
   const last=s.rows.slice(-14);
   const max=Math.max(1,...last.map(([,x])=>(x.cash||0)+(x.card||0)+(x.qr||0)+(x.other||0)));
   last.forEach(([d,x])=>{
@@ -932,7 +932,7 @@ function renderHome(){
     c.className='col';
     c.style.height=`${Math.max(3,v/max*100)}%`;
     c.title=`${d}: ${yen(v)}`;
-    miniChart.appendChild(c);
+    if(miniChart) miniChart.appendChild(c);
   });
 
   renderHomeCharts();
