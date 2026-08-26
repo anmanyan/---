@@ -317,7 +317,7 @@ th:first-child,td:first-child{text-align:left}
       <div style="padding:8px 0 4px 14px;border-left:3px solid #e5e7eb;margin:0 0 6px">
         <div class="small" style="font-weight:800;color:var(--text);margin-bottom:4px">経費の内訳</div>
         <div id="monthlyBreakdown"></div>
-        <div class="small" style="margin-top:6px">「通常」は設定の金額。「今月変更」は今月だけ変えた金額です。</div>
+        <div class="small" style="margin-top:6px">表示している金額は、今月の計算に使っている金額です。</div>
       </div>
 
       <div class="summaryline"><div class="summarylabel"><span>営業利益</span><span class="summaryhelp">毎月の経費を引いたあとの利益</span></div><b id="aProfit">--</b></div>
@@ -333,29 +333,28 @@ th:first-child,td:first-child{text-align:left}
       <label>月末の在庫</label><input type="number" inputmode="numeric" id="closingStock" placeholder="0">
       <label>今月の人件費（給与実額・任意）</label><input type="number" inputmode="numeric" id="monthlyLabor" placeholder="0">
 
-      <div class="section-title" style="margin-top:20px">今月だけ変わる経費</div>
+      <div class="section-title" style="margin-top:20px">毎月の経費を入力</div>
       <div class="small" style="line-height:1.7">
-        毎月同じ金額の経費は<strong>「設定」</strong>で入力します。<br>
-        ここは、今月だけ金額が違うときだけ入力してください。
-      </div>
-      <button class="secondary" id="goRegularCosts" style="margin-top:10px">毎月の通常額を設定する</button>
-      <div class="row">
-        <div><label>家賃</label><input type="number" inputmode="numeric" id="mRent" placeholder="通常額"></div>
-        <div><label>リース</label><input type="number" inputmode="numeric" id="mLease" placeholder="通常額"></div>
+        家賃・電気・ガスなど、毎月かかる金額をここに入力します。<br>
+        保存した金額は次の月にも引き継がれます。
       </div>
       <div class="row">
-        <div><label>電気</label><input type="number" inputmode="numeric" id="mElectricity" placeholder="通常額"></div>
-        <div><label>ガス</label><input type="number" inputmode="numeric" id="mGas" placeholder="通常額"></div>
+        <div><label>家賃</label><input type="number" inputmode="numeric" id="mRent" placeholder="0"></div>
+        <div><label>リース</label><input type="number" inputmode="numeric" id="mLease" placeholder="0"></div>
       </div>
       <div class="row">
-        <div><label>水道</label><input type="number" inputmode="numeric" id="mWater" placeholder="通常額"></div>
-        <div><label>保険</label><input type="number" inputmode="numeric" id="mInsurance" placeholder="通常額"></div>
+        <div><label>電気</label><input type="number" inputmode="numeric" id="mElectricity" placeholder="0"></div>
+        <div><label>ガス</label><input type="number" inputmode="numeric" id="mGas" placeholder="0"></div>
       </div>
       <div class="row">
-        <div><label>通信・システム</label><input type="number" inputmode="numeric" id="mCommunication" placeholder="通常額"></div>
-        <div><label>その他の経費</label><input type="number" inputmode="numeric" id="mOtherMonthlyCost" placeholder="通常額"></div>
+        <div><label>水道</label><input type="number" inputmode="numeric" id="mWater" placeholder="0"></div>
+        <div><label>保険</label><input type="number" inputmode="numeric" id="mInsurance" placeholder="0"></div>
       </div>
-      <label>今月の借入返済</label><input type="number" inputmode="numeric" id="mLoan" placeholder="通常額">
+      <div class="row">
+        <div><label>通信・システム</label><input type="number" inputmode="numeric" id="mCommunication" placeholder="0"></div>
+        <div><label>その他の経費</label><input type="number" inputmode="numeric" id="mOtherMonthlyCost" placeholder="0"></div>
+      </div>
+      <label>借入返済</label><input type="number" inputmode="numeric" id="mLoan" placeholder="0">
       <button class="primary" id="saveMonthly">月次データを保存</button>
     </div>
 
@@ -367,7 +366,7 @@ th:first-child,td:first-child{text-align:left}
 
   <section id="settings" class="screen">
     <div class="card">
-      <div class="section-title">経営設定</div>
+      <div class="section-title">お店の目標設定</div>
       <label>月間売上目標</label><input type="number" id="goal" value="2800000">
       <label>想定営業日数 / 月</label><input type="number" id="monthlyOpenDays" value="26" min="1" max="31">
       <div class="small">月末予測は「入力済み営業日の平均売上 × 想定営業日数」で計算します。</div>
@@ -375,26 +374,7 @@ th:first-child,td:first-child{text-align:left}
         <div><label>目標原価率（%）</label><input type="number" id="targetCostRate" value="32" step="0.1"></div>
         <div><label>目標人件費率（%）</label><input type="number" id="targetLaborRate" value="16" step="0.1"></div>
       </div>
-      <div class="section-title" id="regularCostsSettings" style="margin-top:18px">毎月の通常額を入力</div>
-      <div class="small">家賃・リースなど、毎月いつもかかる金額をここに登録します。今月だけ違う金額は「今月のまとめ」で変更できます。</div>
-      <div class="row">
-        <div><label>家賃</label><input type="number" id="rent" value="0"></div>
-        <div><label>リース</label><input type="number" id="lease" value="0"></div>
-      </div>
-      <div class="row">
-        <div><label>電気</label><input type="number" id="electricity" value="0"></div>
-        <div><label>ガス</label><input type="number" id="gas" value="0"></div>
-      </div>
-      <div class="row">
-        <div><label>水道</label><input type="number" id="water" value="0"></div>
-        <div><label>保険</label><input type="number" id="insurance" value="0"></div>
-      </div>
-      <div class="row">
-        <div><label>通信・システム</label><input type="number" id="communication" value="0"></div>
-        <div><label>その他の経費</label><input type="number" id="otherMonthlyCost" value="0"></div>
-      </div>
-      <label>借入返済（月額）</label><input type="number" id="loan" value="90000">
-      <div class="small">借入元金の返済は営業利益には含めず、「返済後の残り」で別に確認します。</div>
+      
       <button class="primary" id="saveSettings">設定を保存</button>
     </div>
 
@@ -913,15 +893,13 @@ function renderMonthlyBreakdown(month){
     const hasMonthValue=monthValue!==undefined && monthValue!==null && monthValue!=='';
     const normalValue=Number(state.settings[k]||0);
     const monthNum=Number(monthValue||0);
-
-    // If the month value is the same as the normal setting,
-    // display/use it as a normal amount rather than a monthly override.
-    const isRealOverride=hasMonthValue && monthNum!==normalValue;
-    const effective=isRealOverride ? monthNum : normalValue;
-    const note=isRealOverride ? '今月変更' : '通常';
+    const effective=hasMonthValue ? monthNum : normalValue;
 
     if(effective!==0){
-      appendBreakdownRow(labels[k],effective,note);
+      const row=document.createElement('div');
+      row.className='summaryline';
+      row.innerHTML='<span>'+labels[k]+'</span><b>'+yen(effective)+'</b>';
+      monthlyBreakdown.appendChild(row);
       total += effective;
       count++;
     }
@@ -970,15 +948,15 @@ function renderAnalysis(){
   closingStock.value=md.closingStock||0;
   monthlyLabor.value=md.monthlyLabor||0;
   const costs=md.costs||{};
-  mRent.value=costs.rent ?? '';
-  mLease.value=costs.lease ?? '';
-  mElectricity.value=costs.electricity ?? '';
-  mGas.value=costs.gas ?? '';
-  mWater.value=costs.water ?? '';
-  mInsurance.value=costs.insurance ?? '';
-  mCommunication.value=costs.communication ?? '';
-  mOtherMonthlyCost.value=costs.otherMonthlyCost ?? '';
-  mLoan.value=md.loan ?? '';
+  mRent.value=costs.rent ?? state.settings.rent ?? 0;
+  mLease.value=costs.lease ?? state.settings.lease ?? 0;
+  mElectricity.value=costs.electricity ?? state.settings.electricity ?? 0;
+  mGas.value=costs.gas ?? state.settings.gas ?? 0;
+  mWater.value=costs.water ?? state.settings.water ?? 0;
+  mInsurance.value=costs.insurance ?? state.settings.insurance ?? 0;
+  mCommunication.value=costs.communication ?? state.settings.communication ?? 0;
+  mOtherMonthlyCost.value=costs.otherMonthlyCost ?? state.settings.otherMonthlyCost ?? 0;
+  mLoan.value=md.loan ?? state.settings.loan ?? 0;
 
   let msg='月次データを入れると診断します。',cls='notice good';
   if(s.sales>0){
@@ -1002,16 +980,6 @@ function renderAnalysis(){
   monthlyAdvice.textContent=msg; monthlyAdvice.className=cls;
 }
 
-const goRegularCosts=$('goRegularCosts');
-if(goRegularCosts){
-  goRegularCosts.onclick=()=>{
-    setScreen('settings');
-    setTimeout(()=>{
-      const target=$('regularCostsSettings');
-      if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
-    },80);
-  };
-}
 ['cash','card','qr','other'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   todayTotal.textContent=yen(num('cash')+num('card')+num('qr')+num('other'))
 }));
@@ -1028,39 +996,17 @@ saveMonthly.onclick=()=>{
   const m=analysisMonth.value;
   if(!m) return alert('月を選んでください');
 
-  const normalCosts={
-    rent:Number(state.settings.rent||0),
-    lease:Number(state.settings.lease||0),
-    electricity:Number(state.settings.electricity||0),
-    gas:Number(state.settings.gas||0),
-    water:Number(state.settings.water||0),
-    insurance:Number(state.settings.insurance||0),
-    communication:Number(state.settings.communication||0),
-    otherMonthlyCost:Number(state.settings.otherMonthlyCost||0)
-  };
-
   const monthCosts={
-    rent:mRent.value===''?null:num('mRent'),
-    lease:mLease.value===''?null:num('mLease'),
-    electricity:mElectricity.value===''?null:num('mElectricity'),
-    gas:mGas.value===''?null:num('mGas'),
-    water:mWater.value===''?null:num('mWater'),
-    insurance:mInsurance.value===''?null:num('mInsurance'),
-    communication:mCommunication.value===''?null:num('mCommunication'),
-    otherMonthlyCost:mOtherMonthlyCost.value===''?null:num('mOtherMonthlyCost')
+    rent:num('mRent'),
+    lease:num('mLease'),
+    electricity:num('mElectricity'),
+    gas:num('mGas'),
+    water:num('mWater'),
+    insurance:num('mInsurance'),
+    communication:num('mCommunication'),
+    otherMonthlyCost:num('mOtherMonthlyCost')
   };
-
-  // 通常額と同じなら月別上書きを保存しない。
-  Object.keys(monthCosts).forEach(k=>{
-    if(monthCosts[k]!==null && Number(monthCosts[k])===Number(normalCosts[k]||0)){
-      monthCosts[k]=null;
-    }
-  });
-
-  let monthLoan=mLoan.value===''?null:num('mLoan');
-  if(monthLoan!==null && Number(monthLoan)===Number(state.settings.loan||0)){
-    monthLoan=null;
-  }
+  const monthLoan=num('mLoan');
 
   state.months[m]={
     ...(state.months[m]||{}),
@@ -1076,16 +1022,23 @@ saveMonthly.onclick=()=>{
     loan:monthLoan
   };
 
+  // 次の月でも同じ金額から始められるよう、今回の毎月経費を引き継ぐ
+  Object.keys(monthCosts).forEach(k=>state.settings[k]=monthCosts[k]);
+  state.settings.loan=monthLoan;
+
   persist();
   renderAnalysis();
   renderHome();
   showToast('月次データを保存しました');
 };
 function loadSettingsUI(){
-  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost','loan'].forEach(k=>document.getElementById(k).value=state.settings[k]);
+  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate'].forEach(k=>{
+    const el=document.getElementById(k);
+    if(el) el.value=state.settings[k];
+  });
 }
 saveSettings.onclick=()=>{
-  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate','rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost','loan'].forEach(k=>state.settings[k]=num(k));
+  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate'].forEach(k=>state.settings[k]=num(k));
   persist(); renderHome(); renderAnalysis(); showToast('設定を保存しました');
 };
 replayIntro.onclick=()=>{
