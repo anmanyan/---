@@ -783,17 +783,22 @@ let weeklySalesChartObj=null, monthlySalesChartObj=null, expensePieChartObj=null
 function chartDestroy(c){ if(c && typeof c.destroy==='function') c.destroy(); }
 
 function allDays(){
-  if(Array.isArray(state.days)) return state.days;
-  if(state.days && typeof state.days==='object') return Object.values(state.days);
+  if(Array.isArray(state.days)){
+    return state.days.map(d=>({date:d.date||d.day||d.entryDate||'',data:d}));
+  }
+  if(state.days && typeof state.days==='object'){
+    return Object.entries(state.days).map(([date,data])=>({date,data}));
+  }
   return [];
 }
 
-function salesOfDay(d){
+function salesOfDay(row){
+  const d=row.data||row;
   return Number(d.cash||0)+Number(d.card||0)+Number(d.qr||0)+Number(d.other||0);
 }
 
-function dateOfDay(d){
-  const raw=d.date||d.day||d.entryDate;
+function dateOfDay(row){
+  const raw=row.date || row.data?.date || row.data?.day || row.data?.entryDate;
   if(!raw) return null;
   const x=new Date(raw+'T00:00:00');
   return Number.isNaN(x.getTime()) ? null : x;
@@ -813,7 +818,7 @@ function renderWeeklySalesChart(){
     vals[Math.min(4,Math.floor((dt.getDate()-1)/7))]+=salesOfDay(d);
   });
   const ok=vals.some(v=>v>0);
-  c.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
+  c.parentElement.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
   chartDestroy(weeklySalesChartObj);
   if(!ok) return;
   weeklySalesChartObj=new Chart(c,{
@@ -837,7 +842,7 @@ function renderMonthlySalesChart(){
     const k=monthKeyLocal(dt); if(map[k]!==undefined) list[map[k]].value+=salesOfDay(d);
   });
   const ok=list.some(x=>x.value>0);
-  c.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
+  c.parentElement.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
   chartDestroy(monthlySalesChartObj);
   if(!ok) return;
   monthlySalesChartObj=new Chart(c,{
@@ -852,10 +857,10 @@ function renderExpensePieChart(){
   if(!c || typeof Chart==='undefined') return;
   const key=monthKeyLocal(new Date()), md=state.months[key]||{}, costs=md.costs||{};
   const monthDays=allDays().filter(d=>{const dt=dateOfDay(d); return dt && monthKeyLocal(dt)===key;});
-  const purchase=monthDays.reduce((a,d)=>a+Number(d.purchase||d.purchases||0),0)+Number(md.monthlyExtraPurchase||0);
+  const purchase=monthDays.reduce((a,row)=>{const d=row.data||row;return a+Number(d.purchase||d.purchases||0)},0)+Number(md.monthlyExtraPurchase||0);
   const labor=(md.monthlyLabor!==undefined && md.monthlyLabor!==null && md.monthlyLabor!=='')
     ? Number(md.monthlyLabor||0)
-    : monthDays.reduce((a,d)=>a+Number(d.labor||0),0);
+    : monthDays.reduce((a,row)=>{const d=row.data||row;return a+Number(d.laborDay||d.labor||0)},0);
   const keys=['rent','lease','electricity','gas','water','insurance','communication','otherMonthlyCost'];
   const recurring=keys.reduce((a,k)=>{
     const v=(costs[k]!==undefined && costs[k]!==null && costs[k]!=='') ? costs[k] : state.settings[k];
@@ -864,7 +869,7 @@ function renderExpensePieChart(){
   const labels=[], vals=[];
   [['仕入',purchase],['人件費',labor],['毎月の経費',recurring]].forEach(([l,v])=>{if(v>0){labels.push(l);vals.push(v);}});
   const ok=vals.length>0;
-  c.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
+  c.parentElement.style.display=ok?'block':'none'; e.style.display=ok?'none':'flex';
   chartDestroy(expensePieChartObj);
   if(!ok) return;
   expensePieChartObj=new Chart(c,{
@@ -890,8 +895,8 @@ function renderHome(){
   forecastConfidence.textContent=s.enteredSalesDays===0
     ? '予測データなし'
     : `予測精度：${s.confidence}（${s.enteredSalesDays}営業日分 / 想定${s.assumedOpenDays}日）`;
-  actualCostRate.textContent=s.actualCostRate==null ? '棚卸入力後' : pct(s.actualCostRate);
-  flRate.textContent=s.flRate==null ? '原価・人件費入力後' : pct(s.flRate);
+  actualCostRate.textContent=s.actualCostRate==null ? '棚卸後に表示' : pct(s.actualCostRate);
+  flRate.textContent=s.flRate==null ? '入力後に表示' : pct(s.flRate);
 
   const prev=calcMonth(previousMonth(ym(today)));
   cmpSales.innerHTML=deltaText(s.sales,prev.sales);
@@ -1106,6 +1111,7 @@ function renderAnalysis(){
     }
   }
   monthlyAdvice.textContent=msg; monthlyAdvice.className=cls;
+  renderHomeCharts();
 }
 
 ['cash','card','qr','other'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
