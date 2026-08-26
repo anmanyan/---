@@ -40,6 +40,7 @@ button{border:0;border-radius:13px;padding:13px 16px;font-weight:850}
 .danger{background:#fee2e2;color:#991b1b}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 .actions button{flex:1;min-width:130px}
+.backup-actions button{min-width:0;padding-left:8px;padding-right:8px;font-size:14px;white-space:nowrap}
 .bar{height:12px;background:#eef2f7;border-radius:999px;overflow:hidden}
 .bar>span{display:block;height:100%;background:#111827;width:0}
 .tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
@@ -355,7 +356,7 @@ th:first-child,td:first-child{text-align:left}
         <div><label>その他の経費</label><input type="number" inputmode="numeric" id="mOtherMonthlyCost" placeholder="0"></div>
       </div>
       <label>借入返済</label><input type="number" inputmode="numeric" id="mLoan" placeholder="0">
-      <button class="primary" id="saveMonthly">月次データを保存</button>
+      <button class="primary" id="saveMonthly">今月の数字を保存</button>
     </div>
 
     <div class="card">
@@ -389,29 +390,29 @@ th:first-child,td:first-child{text-align:left}
       <div class="small" style="line-height:1.7;margin:8px 0 14px">
         <strong>データのバックアップを取っておくと安心です</strong><br>
         月末・大きな設定変更前・機種変更前・全削除前には、
-        「バックアップを取る」でデータのバックアップを保存しておくと安心です。
+        「バックアップ保存」でデータのバックアップを保存しておくと安心です。
       </div>
       <div style="background:#f6f8fb;border:1px solid #e3e8ef;border-radius:16px;padding:14px 16px;margin:0 0 16px">
         <div style="font-weight:800;margin-bottom:8px">こんな時は</div>
         <div class="small" style="line-height:1.75">
-          ・スマホを買い替える前 → <strong>バックアップを取る</strong><br>
-          ・ブラウザの履歴やサイトデータを消す前 → <strong>バックアップを取る</strong><br>
-          ・誤って削除した／別端末へ移したい → <strong>バックアップを読み込む</strong><br>
+          ・スマホを買い替える前 → <strong>バックアップ保存</strong><br>
+          ・ブラウザの履歴やサイトデータを消す前 → <strong>バックアップ保存</strong><br>
+          ・誤って削除した／別端末へ移したい → <strong>バックアップ読込</strong><br>
           ・全削除する前 → <strong>必ずデータのバックアップを取っておくと安心です</strong>
         </div>
       </div>
       <div class="small" style="line-height:1.65;margin-bottom:14px">
         データはこの端末のブラウザ内に保存されます。
         ブラウザのサイトデータ削除や端末変更で消える場合があるため、
-        定期的なデータのバックアップをおすすめします。
+        定期的にバックアップ保存しておくと安心です。
       </div>
 
       <div class="actions">
-        <button class="secondary" id="exportBtn">バックアップを取る</button>
-        <button class="secondary" id="importBtn">バックアップを読み込む</button>
+        <button class="secondary" id="exportBtn">バックアップ保存</button>
+        <button class="secondary" id="importBtn">バックアップ読込</button>
         
         <div class="small" style="grid-column:1/-1;color:#9b2c2c;font-weight:700;line-height:1.6;margin:4px 0 0">
-          全削除の前にデータのバックアップをおすすめします。削除したデータは元に戻せません。
+          全削除の前にデータのバックアップ保存をおすすめします。削除したデータは元に戻せません。
         </div>
 <button class="danger" id="resetBtn">全削除</button>
       </div>
@@ -1029,7 +1030,7 @@ saveMonthly.onclick=()=>{
   persist();
   renderAnalysis();
   renderHome();
-  showToast('月次データを保存しました');
+  showToast('今月の数字を保存しました');
 };
 function loadSettingsUI(){
   ['goal','monthlyOpenDays','targetCostRate','targetLaborRate'].forEach(k=>{
