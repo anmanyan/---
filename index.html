@@ -1669,12 +1669,25 @@ function renderPrintReport(){
   const rows=[['売上',yen(s.sales)],['売上目標',yen(goalM)],['目標達成率',goalRate==null?'--':pct(goalRate)],['客数',Math.round(s.customers||0).toLocaleString('ja-JP')+'人'],['客単価',s.customers?yen(s.avgSpend):'--'],['仕入',yen(s.totalPurchases)],['仕入率',pct(s.purchaseRate)],['実際の原価',s.actualCost==null?'月末在庫で確定':yen(s.actualCost)],['原価率',s.actualCostRate==null?'未確定':pct(s.actualCostRate)],['人件費',yen(s.labor)],['人件費率',s.laborRate==null?'--':pct(s.laborRate)],['原価＋人件費率',fl==null?'--':pct(fl)],['経費合計',yen(mc.total)],['営業利益',s.profit==null?'未確定':yen(s.profit)],['借入返済',yen(mc.loan)],['返済後の残り',s.cashAfterDebt==null?'未確定':yen(s.cashAfterDebt)]];
   printReport.innerHTML='<h1>飲食店利益ナビ</h1><div class="print-sub">'+title+'｜経営管理レポート</div><h2>経営サマリー</h2><table><tbody>'+rows.map(r=>'<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>').join('')+'</tbody></table><h2>今月のひとこと</h2><div style="font-size:12px;line-height:1.7">'+escapeHtml(monthlyAdvice?.textContent||'')+'</div><h2>確認メモ</h2><div style="height:80px;border:1px solid #ddd;border-radius:8px"></div><div class="print-note">このレポートは飲食店の自己分析・経営管理用です。税務申告、会計処理、税務判断を代替するものではありません。表示値は入力内容に基づく参考値です。</div>';
 }
+function isStandaloneApp(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+}
 if(printReportBtn)printReportBtn.onclick=()=>{
+  if(isStandaloneApp()){
+    const u=new URL(location.href);
+    u.searchParams.set('pdf','1');
+    u.searchParams.set('month',analysisMonth.value||ym(today));
+    const w=window.open(u.toString(),'_blank');
+    if(!w){
+      alert('Safariを開けませんでした。右上または共有メニューから「Safariで開く」を選び、もう一度お試しください。');
+    }
+    return;
+  }
   renderPrintReport();
   try{
     window.print();
   }catch(e){
-    alert('印刷画面を開けませんでした。Safariで開いてもう一度お試しください。');
+    alert('印刷画面を開けませんでした。Safariの共有メニューから「プリント」を選んでください。');
   }
 };
 
@@ -1757,7 +1770,20 @@ renderRecent();
 loadDayForm(date.value);
 attachMoneyFormatters();
 initIntro();
-setTimeout(maybeShowMonthStart,250);
+const pdfParams=new URLSearchParams(location.search);
+if(pdfParams.get('pdf')==='1'){
+  const reportMonth=pdfParams.get('month');
+  if(reportMonth)analysisMonth.value=reportMonth;
+  renderAnalysis();
+  setScreen('analysis');
+  if(printReportBtn)printReportBtn.textContent='PDF保存を続ける';
+  setTimeout(()=>{
+    if(printReportBtn)printReportBtn.scrollIntoView({behavior:'smooth',block:'center'});
+    alert('Safariで開きました。「PDF保存を続ける」をタップすると印刷画面が開きます。');
+  },300);
+}else{
+  setTimeout(maybeShowMonthStart,250);
+}
 
 </script>
 
