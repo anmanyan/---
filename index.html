@@ -51,8 +51,8 @@ button{border:0;border-radius:13px;padding:13px 16px;font-weight:850}
 .tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
 .tabs.hidden{display:none}
 .tabs .wrap{width:min(760px,100%);display:grid;grid-template-columns:repeat(4,1fr)}
-.tab{padding:12px 4px;background:transparent;color:var(--sub);font-size:12px}
-.tab.active{color:#111827}
+.tab{margin:7px 4px;padding:11px 5px;background:#f3f4f6;color:#4b5563;font-size:12px;border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 1px 3px rgba(17,24,39,.04)}
+.tab.active{color:#fff;background:#0f234d;border-color:#0f234d;box-shadow:0 5px 14px rgba(15,35,77,.18)}
 .screen{display:none}
 .screen.active{display:block}
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -173,6 +173,23 @@ th:first-child,td:first-child{text-align:left}
 
 .monthly-value-row{display:flex;justify-content:space-between;gap:4px;margin-top:-4px;padding:0 6px}
 .monthly-value-row span{flex:1;text-align:center;font-size:9px;color:var(--sub);white-space:nowrap}
+
+
+.annual-chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px;padding-bottom:4px}
+.annual-chart-inner{min-width:640px}
+.annual-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:8px 0 2px;font-size:11px;color:var(--sub)}
+.legend-line{display:inline-flex;align-items:center;gap:6px}.legend-line::before{content:"";width:20px;height:3px;border-radius:99px;background:#111827}.legend-line.goal::before{height:2px;background:#f59e0b}
+.annual-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.annual-summary-item{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px}.annual-summary-item span{display:block;font-size:10px;color:var(--sub)}.annual-summary-item b{display:block;margin-top:4px;font-size:14px;color:#0f234d}
+.month-start-overlay{position:fixed;inset:0;background:rgba(15,23,42,.48);z-index:500;display:none;align-items:flex-end;justify-content:center;padding:18px}.month-start-overlay.show{display:flex}.month-start-panel{width:min(560px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:24px;padding:20px;box-shadow:0 24px 70px rgba(15,23,42,.28)}.month-start-kicker{font-size:12px;font-weight:900;color:#0f766e}.month-start-title{font-size:24px;font-weight:950;color:#0f234d;margin:5px 0 8px}.month-start-check{display:grid;gap:8px;margin:14px 0}.month-start-check div{padding:10px 12px;background:#f8fafc;border:1px solid var(--line);border-radius:12px;font-size:13px}.month-start-actions{display:grid;gap:9px;margin-top:14px}
+.help-list details{border:1px solid var(--line);border-radius:13px;padding:0 12px;background:#fff;margin:8px 0}.help-list summary{cursor:pointer;font-weight:850;padding:12px 0;color:#0f234d}.help-list details div{font-size:12px;color:var(--sub);line-height:1.7;padding:0 0 12px}
+.alert-list{display:grid;gap:8px}.alert-item{border-radius:13px;padding:11px 12px;font-size:13px;line-height:1.55;border:1px solid var(--line);background:#f8fafc}.alert-item.good{background:#ecfdf5;border-color:#a7f3d0}.alert-item.warn{background:#fff7ed;border-color:#fed7aa}.alert-item.bad{background:#fef2f2;border-color:#fecaca}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.report-cell{border:1px solid var(--line);background:#f8fafc;border-radius:12px;padding:10px}.report-cell span{display:block;font-size:10px;color:var(--sub)}.report-cell b{display:block;font-size:14px;color:#0f234d;margin-top:3px}.print-report{display:none}
+.money-note{font-size:10px;color:var(--sub);margin-top:4px}
+@media print{
+  body>*{display:none!important}
+  #printReport{display:block!important;position:static!important;width:100%!important;max-width:none!important;padding:18mm!important;color:#111!important;background:#fff!important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",sans-serif}
+  #printReport h1{font-size:24px;margin:0 0 6px}#printReport h2{font-size:18px;margin:20px 0 8px}#printReport .print-sub{font-size:12px;color:#555;margin-bottom:16px}#printReport table{width:100%;border-collapse:collapse}#printReport th,#printReport td{border-bottom:1px solid #ddd;padding:8px;text-align:left;font-size:12px}#printReport td:last-child,#printReport th:last-child{text-align:right}#printReport .print-note{font-size:10px;color:#666;margin-top:18px;line-height:1.6}
+}
 
 </style>
 </head>
@@ -336,6 +353,12 @@ th:first-child,td:first-child{text-align:left}
     </div>
 
     <div class="card">
+      <div class="section-title">経営チェック</div>
+      <div class="small" style="margin-bottom:9px">今月の数字から、確認しておきたいポイントだけ表示します。</div>
+      <div id="managementAlerts" class="alert-list"><div class="alert-item good">入力が増えると、ここに経営チェックが表示されます。</div></div>
+    </div>
+
+    <div class="card">
       <div class="section-title">前月と比べる</div><div class="small" style="margin-bottom:8px">前月と比べています</div>
       <div class="summaryline"><span id="compareSalesLabel">売上（税込）</span><b id="cmpSales">比較データなし</b></div>
       <div class="summaryline"><span>客単価</span><b id="cmpAvg">比較データなし</b></div>
@@ -355,9 +378,16 @@ th:first-child,td:first-child{text-align:left}
 
     <div class="card">
       <div class="section-title">月ごとの売上</div>
-      <div class="small" id="monthlySalesBasis">直近6か月の税込売上の流れを見ます。</div>
-      <div class="chart-total" id="monthlySalesTotal">表示6か月合計 ¥0</div>
-      <div class="chart-wrap monthly-chart-wrap" id="monthlySalesChart"></div>
+      <div class="small" id="monthlySalesBasis">今年1月〜12月の税込売上と、月ごとの目標を比べます。</div>
+      <div class="chart-total" id="monthlySalesTotal">今年合計 ¥0</div>
+      <div class="annual-legend"><span class="legend-line">実売上</span><span class="legend-line goal">目標売上</span></div>
+      <div class="chart-wrap monthly-chart-wrap annual-chart-scroll" id="monthlySalesChart"></div>
+      <div class="annual-summary-grid">
+        <div class="annual-summary-item"><span>年間売上</span><b id="yearSalesTotal">¥0</b></div>
+        <div class="annual-summary-item"><span>目標達成月</span><b id="yearGoalMonths">0 / 12か月</b></div>
+        <div class="annual-summary-item"><span>月平均（入力月）</span><b id="yearMonthlyAvg">¥0</b></div>
+        <div class="annual-summary-item"><span>一番売れた月</span><b id="yearBestMonth">--</b></div>
+      </div>
       <div class="chart-empty" id="monthlySalesEmpty" style="display:none">データがたまると表示されます。</div>
     </div>
 
@@ -475,6 +505,13 @@ th:first-child,td:first-child{text-align:left}
     </div>
 
     <div class="card">
+      <div class="section-title">月次レポート</div>
+      <div class="small">その月の経営数字を1枚にまとめます。印刷画面からPDFとして保存できます。</div>
+      <div id="monthlyReportSummary" class="report-grid"></div>
+      <button class="secondary" id="printReportBtn" style="width:100%;margin-top:12px">印刷 / PDF保存</button>
+    </div>
+
+    <div class="card">
       <div class="section-title">今月のひとこと</div>
       <div id="monthlyAdvice" class="notice good">月次データを入れると診断します。</div>
     </div>
@@ -483,8 +520,10 @@ th:first-child,td:first-child{text-align:left}
   <section id="settings" class="screen">
     <div class="card">
       <div class="section-title">お店の目標設定</div>
-      <label>月間売上目標</label><input type="number" id="goal" value="2800000">
-      <label>想定営業日数 / 月</label><input type="number" id="monthlyOpenDays" value="26" min="1" max="31">
+      <label>目標を設定する月</label><input type="month" id="goalMonth">
+      <label>この月の売上目標</label><input type="number" inputmode="numeric" id="goal" value="2800000">
+      <div class="money-note">月ごとに変えられます。未設定の月は基本目標を使います。</div>
+      <label>この月の想定営業日数</label><input type="number" id="monthlyOpenDays" value="26" min="1" max="31">
       <div class="small">月末予測は「入力済み営業日の平均売上 × 想定営業日数」で計算します。</div>
       <div class="row">
         <div><label>目標原価率（%）</label><input type="number" id="targetCostRate" value="32" step="0.1"></div>
@@ -529,9 +568,22 @@ th:first-child,td:first-child{text-align:left}
     </div>
 
     <div class="card">
-      <div class="section-title">オープニング</div>
-      <button class="ghost" id="replayIntro">もう一度オープニングを見る</button>
-      <div class="replay-note">初回だけ表示されますが、ここから再表示できます。</div>
+      <div class="section-title">最初の説明</div>
+      <button class="ghost" id="replayIntro">最初の説明画面を見る</button>
+      <div class="replay-note">使い方を最初から確認したいときに、いつでも見直せます。</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">困ったときはこちら</div>
+      <div class="small">よく迷いやすいところを、短くまとめています。</div>
+      <div class="help-list">
+        <details><summary>最初に何をすればいい？</summary><div>①「設定」で今月の目標を確認 → ②「今日の入力」で売上・客数・仕入を保存 → ③「ホーム」「今月のまとめ」で結果を見る、の順でOKです。</div></details>
+        <details><summary>数字はどこに入れる？</summary><div>毎日は「今日の入力」。家賃・光熱費・月末在庫などは「今月のまとめ」に入力します。</div></details>
+        <details><summary>機種変更するときは？</summary><div>古い端末で「バックアップ保存」をして、新しい端末で「バックアップ読込」をしてください。</div></details>
+        <details><summary>オフラインで使うには？</summary><div>初回はオンラインで開き、ホーム画面に追加してください。その後はオフラインでも起動できます。ブラウザのサイトデータ削除前にはバックアップをおすすめします。</div></details>
+        <details><summary>税込・税抜を変えるとどうなる？</summary><div>表示・入力基準のラベルが変わります。入力済み金額を自動変換する機能や、消費税申告額を計算する機能ではありません。</div></details>
+        <details><summary>PDFで残したい</summary><div>「今月のまとめ」にある「印刷 / PDF保存」から、月次レポートを印刷・PDF保存できます。</div></details>
+      </div>
     </div>
 
     <div class="card">
@@ -574,6 +626,24 @@ th:first-child,td:first-child{text-align:left}
   </section>
 </div>
 
+<div id="monthStartOverlay" class="month-start-overlay" aria-hidden="true">
+  <div class="month-start-panel">
+    <div class="month-start-kicker">月初チェック</div>
+    <div class="month-start-title" id="monthStartTitle">今月が始まりました</div>
+    <div class="small" style="font-size:13px">今月も気持ちよくスタートできるように、最初に数字を確認しましょう。</div>
+    <div class="month-start-check">
+      <div>✓ 今月の目標売上</div><div>✓ 想定営業日数</div><div>✓ 固定費・借入返済</div><div>✓ 目標原価率・目標人件費率</div>
+    </div>
+    <div class="month-start-actions">
+      <button class="primary" id="monthStartBegin">今月の設定を確認する</button>
+      <button class="secondary" id="monthStartCosts">固定費を確認する</button>
+      <button class="secondary" id="monthStartCopy">前月の設定を引き継ぐ</button>
+      <button class="ghost" id="monthStartLater">あとで</button>
+    </div>
+  </div>
+</div>
+
+<div id="printReport" class="print-report"></div>
 <div id="toast" class="toast">保存しました</div>
 <nav id="bottomTabs" class="tabs hidden">
   <div class="wrap">
@@ -601,7 +671,7 @@ const defaultState={
   days:{},
   months:{},
   settings:{taxMode:'included',goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,rent:0,lease:0,electricity:0,gas:0,water:0,insurance:0,communication:0,otherMonthlyCost:0,loan:90000,purchaseCategories:['','','','','','','','','','']},
-  meta:{seenIntro:false,introVersion:0}
+  meta:{seenIntro:false,introVersion:0,lastMonthPrompt:''}
 };
 let state=load();
 if(state.settings.fixed!=null && state.settings.otherMonthlyCost==null){
@@ -676,6 +746,17 @@ const qr=$('qr');
 const other=$('other');
 const saveMonthly=$('saveMonthly');
 const goal=$('goal');
+const goalMonth=$('goalMonth');
+const managementAlerts=$('managementAlerts');
+const monthlyReportSummary=$('monthlyReportSummary');
+const printReportBtn=$('printReportBtn');
+const printReport=$('printReport');
+const monthStartOverlay=$('monthStartOverlay');
+const monthStartTitle=$('monthStartTitle');
+const monthStartBegin=$('monthStartBegin');
+const monthStartCopy=$('monthStartCopy');
+const monthStartCosts=$('monthStartCosts');
+const monthStartLater=$('monthStartLater');
 const targetCostRate=$('targetCostRate');
 const targetLaborRate=$('targetLaborRate');
 const rent=$('rent');
@@ -768,7 +849,17 @@ date.value=iso(today);
 analysisMonth.value=ym(today);
 todayPill.textContent=`${today.getMonth()+1}/${today.getDate()}`;
 
-function num(id){return Number(document.getElementById(id).value||0)}
+function parseNum(v){return Number(String(v??'').replace(/,/g,'').trim()||0)}
+function num(id){const el=document.getElementById(id);return parseNum(el?el.value:0)}
+function monthSetting(month,key,fallbackKey=key){
+  const md=state.months?.[month]||{};
+  const v=md[key];
+  return (v!==undefined&&v!==null&&v!=='') ? Number(v) : Number(state.settings[fallbackKey]||0);
+}
+function goalForMonth(month){return monthSetting(month,'goal','goal')}
+function openDaysForMonth(month){return Math.max(1,monthSetting(month,'monthlyOpenDays','monthlyOpenDays')||26)}
+function targetCostForMonth(month){return monthSetting(month,'targetCostRate','targetCostRate')}
+function targetLaborForMonth(month){return monthSetting(month,'targetLaborRate','targetLaborRate')}
 function daysForMonth(month){return Object.entries(state.days).filter(([d])=>d.startsWith(month)).sort(([a],[b])=>a.localeCompare(b))}
 function previousMonth(month){const [y,m]=month.split('-').map(Number);const d=new Date(y,m-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
 
@@ -855,11 +946,11 @@ function calcMonth(month){
 function currentForecast(){
   const m=ym(today),s=calcMonth(m);
   const enteredSalesDays=s.rows.filter(([,x])=>dayTotal(x)>0 || (x.customers||0)>0).length;
-  const assumedOpenDays=Math.max(enteredSalesDays, Number(state.settings.monthlyOpenDays)||26);
+  const assumedOpenDays=Math.max(enteredSalesDays, openDaysForMonth(m));
   const avgSalesPerEnteredDay=enteredSalesDays>0 ? s.sales/enteredSalesDays : 0;
   const forecast=enteredSalesDays>0 ? avgSalesPerEnteredDay*assumedOpenDays : null;
-  const estimatedCost=forecast==null ? null : forecast*state.settings.targetCostRate/100;
-  const estimatedLabor=forecast==null ? null : forecast*state.settings.targetLaborRate/100;
+  const estimatedCost=forecast==null ? null : forecast*targetCostForMonth(m)/100;
+  const estimatedLabor=forecast==null ? null : forecast*targetLaborForMonth(m)/100;
   const profitForecast=forecast==null ? null : forecast-estimatedCost-estimatedLabor-defaultMonthlyCosts();
   const confidence=enteredSalesDays>=8 ? '高' : enteredSalesDays>=3 ? '中' : enteredSalesDays>=1 ? '低' : 'なし';
   return {...s,forecast,profitForecast,enteredSalesDays,assumedOpenDays,avgSalesPerEnteredDay,confidence};
@@ -888,7 +979,7 @@ function updateTaxModeLabels(){
   setText('analysisSalesLabel','売上（'+basis+'）');
   setText('compareSalesLabel','売上（'+basis+'）');
   setText('weeklySalesBasis','今月の'+basis+'売上を週ごとに比べます。');
-  setText('monthlySalesBasis','直近6か月の'+basis+'売上の流れを見ます。');
+  setText('monthlySalesBasis','今年1月〜12月の'+basis+'売上と、月ごとの目標を比べます。');
 }
 
 function setScreen(screenId){
@@ -939,13 +1030,13 @@ function renderPurchaseEntry(x={}){
   const categorized=Object.values(b).reduce((a,v)=>a+Number(v||0),0);
   const legacyRemainder=Math.max(0,Number(x.purchase||0)-categorized);
   purchaseUncategorized.value=(x.purchaseUncategorized!==undefined?Number(x.purchaseUncategorized||0):legacyRemainder)||'';
-  document.querySelectorAll('[data-purchase-cat]').forEach(el=>el.addEventListener('input',updatePurchaseCategoryTotal));
+  document.querySelectorAll('[data-purchase-cat]').forEach(el=>{el.addEventListener('input',updatePurchaseCategoryTotal);attachMoneyFormatter(el);});
   purchaseUncategorized.oninput=updatePurchaseCategoryTotal;
   updatePurchaseCategoryTotal();
 }
 function updatePurchaseCategoryTotal(){
-  let total=Number(purchaseUncategorized?.value||0);
-  document.querySelectorAll('[data-purchase-cat]').forEach(el=>total+=Number(el.value||0));
+  let total=parseNum(purchaseUncategorized?.value||0);
+  document.querySelectorAll('[data-purchase-cat]').forEach(el=>total+=parseNum(el.value||0));
   purchase.value=total||'';
   if(purchaseCategoryTotal)purchaseCategoryTotal.textContent=yen(total);
   return total;
@@ -954,8 +1045,8 @@ function currentPurchaseEntry(){
   const cats=activePurchaseCategories();
   if(!cats.length)return {purchase:num('purchase'),purchaseBreakdown:{},purchaseUncategorized:0};
   const breakdown={};let total=0;
-  cats.forEach(c=>{const el=$('purchaseCat'+c.i);const v=Number(el?.value||0);breakdown[c.i]=v;total+=v;});
-  const unc=Number(purchaseUncategorized?.value||0);total+=unc;
+  cats.forEach(c=>{const el=$('purchaseCat'+c.i);const v=parseNum(el?.value||0);breakdown[c.i]=v;total+=v;});
+  const unc=parseNum(purchaseUncategorized?.value||0);total+=unc;
   return {purchase:total,purchaseBreakdown:breakdown,purchaseUncategorized:unc};
 }
 function renderPurchaseBreakdown(month){
@@ -983,6 +1074,7 @@ function loadDayForm(d){
   renderPurchaseEntry(x);
   memo.value=x.memo||'';
   todayTotal.textContent=yen(dayTotal(x));
+  setTimeout(refreshMoneyInputFormats,0);
 }
 function renderRecent(){
   const rows=Object.entries(state.days).sort(([a],[b])=>b.localeCompare(a)).slice(0,5);
@@ -1041,54 +1133,42 @@ function renderWeeklySalesChart(){
 function renderMonthlySalesChart(){
   const box=$('monthlySalesChart'),empty=$('monthlySalesEmpty');
   if(!box)return;
+  const year=new Date().getFullYear();
+  const list=Array.from({length:12},(_,i)=>({key:year+'-'+String(i+1).padStart(2,'0'),label:(i+1)+'月',value:0,goal:0}));
+  const map={};list.forEach((x,i)=>map[x.key]=i);
+  allDays().forEach(row=>{const dt=dateOfDay(row);if(!dt||dt.getFullYear()!==year)return;const k=monthKeyLocal(dt);if(map[k]!==undefined)list[map[k]].value+=salesOfDay(row);});
+  list.forEach(x=>x.goal=goalForMonth(x.key));
+  const total=list.reduce((a,x)=>a+x.value,0);
+  const mt=$('monthlySalesTotal');if(mt)mt.textContent=year+'年 合計 '+yen(total);
+  const hasAny=list.some(x=>x.value>0)||list.some(x=>x.goal>0);
+  box.style.display=hasAny?'block':'none';empty.style.display=hasAny?'none':'flex';
+  if(!hasAny){box.innerHTML='';return;}
 
-  const now=new Date(),list=[];
-  for(let i=5;i>=0;i--){
-    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    list.push({key:monthKeyLocal(d),label:(d.getMonth()+1)+'月',value:0});
-  }
-
-  const map={};
-  list.forEach((x,i)=>map[x.key]=i);
-
-  allDays().forEach(row=>{
-    const dt=dateOfDay(row);
-    if(!dt)return;
-    const k=monthKeyLocal(dt);
-    if(map[k]!==undefined)list[map[k]].value+=salesOfDay(row);
-  });
-
-  const total6=list.reduce((a,x)=>a+x.value,0);
-  const mt=$('monthlySalesTotal');if(mt)mt.textContent='表示6か月合計 '+yen(total6);
-  const ok=list.some(x=>x.value>0);
-  box.style.display=ok?'block':'none';
-  empty.style.display=ok?'none':'flex';
-  if(!ok){
-    box.innerHTML='';
-    return;
-  }
-
-  const w=320,h=132,padX=18,padY=16;
-  const max=Math.max(...list.map(x=>x.value),1);
-  const pts=list.map((x,i)=>({
-    x:padX+i*((w-padX*2)/(list.length-1)),
-    y:h-padY-(x.value/max)*(h-padY*2),
-    v:x.value,
-    label:x.label
-  }));
-
-  box.innerHTML=
-    '<svg class="native-line-svg" style="height:132px" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
-      '<line x1="'+padX+'" y1="'+(h-padY)+'" x2="'+(w-padX)+'" y2="'+(h-padY)+'" stroke="#dfe3e8" stroke-width="1"/>'+
-      '<polyline points="'+pts.map(p=>p.x+','+p.y).join(' ')+'" fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+
-      pts.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#111827"></circle>').join('')+
+  const w=620,h=150,padX=26,padTop=14,padBottom=24;
+  const max=Math.max(...list.flatMap(x=>[x.value,x.goal]),1);
+  const xAt=i=>padX+i*((w-padX*2)/(list.length-1));
+  const yAt=v=>h-padBottom-(v/max)*(h-padTop-padBottom);
+  const salesPts=list.map((x,i)=>({x:xAt(i),y:yAt(x.value)}));
+  const goalPts=list.map((x,i)=>({x:xAt(i),y:yAt(x.goal)}));
+  box.innerHTML='<div class="annual-chart-inner">'+
+    '<svg class="native-line-svg" style="height:150px" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+
+      '<line x1="'+padX+'" y1="'+(h-padBottom)+'" x2="'+(w-padX)+'" y2="'+(h-padBottom)+'" stroke="#dfe3e8" stroke-width="1"/>'+
+      '<polyline points="'+goalPts.map(p=>p.x+','+p.y).join(' ')+'" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="7 5" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<polyline points="'+salesPts.map(p=>p.x+','+p.y).join(' ')+'" fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+
+      salesPts.map(p=>'<circle cx="'+p.x+'" cy="'+p.y+'" r="3.5" fill="#111827"></circle>').join('')+
     '</svg>'+
-    '<div class="monthly-value-row">'+
-      list.map(x=>'<span>'+yenShort(x.value)+'</span>').join('')+
-    '</div>'+
-    '<div class="native-line-labels">'+
-      list.map(x=>'<span>'+x.label+'</span>').join('')+
+    '<div class="monthly-value-row">'+list.map(x=>'<span>'+yenShort(x.value)+'</span>').join('')+'</div>'+
+    '<div class="native-line-labels">'+list.map(x=>'<span>'+x.label+'</span>').join('')+'</div>'+
     '</div>';
+
+  const entered=list.filter(x=>x.value>0);
+  const achieved=list.filter(x=>x.goal>0&&x.value>=x.goal).length;
+  const best=entered.length?entered.reduce((a,b)=>b.value>a.value?b:a):null;
+  const avg=entered.length?Math.round(total/entered.length):0;
+  if($('yearSalesTotal'))$('yearSalesTotal').textContent=yen(total);
+  if($('yearGoalMonths'))$('yearGoalMonths').textContent=achieved+' / 12か月';
+  if($('yearMonthlyAvg'))$('yearMonthlyAvg').textContent=yen(avg);
+  if($('yearBestMonth'))$('yearBestMonth').textContent=best?best.label+' '+yen(best.value):'--';
 }
 function renderExpensePieChart(){
   const box=$('expensePieChart'),empty=$('expensePieEmpty');
@@ -1186,7 +1266,7 @@ function renderHomeCharts(){
 function renderHome(){
   updateGettingStarted();
   updateTaxModeLabels();
-  const s=currentForecast(), goal=state.settings.goal, ratio=goal ? s.sales/goal*100 : 0;
+  const s=currentForecast(), currentMonth=ym(today), goal=goalForMonth(currentMonth), ratio=goal ? s.sales/goal*100 : 0;
   monthSales.textContent=yen(s.sales);
   goalText.textContent=`目標 ${yen(goal)} の ${ratio.toFixed(1)}%`;
   goalBar.style.width=`${Math.min(100,ratio)}%`;
@@ -1199,7 +1279,7 @@ function renderHome(){
   flRate.textContent=s.flRate==null ? '入力後に表示' : pct(s.flRate);
 
   // 黒字まで必要な追加売上の目安
-  const targetVariableRate=(Number(state.settings.targetCostRate||0)+Number(state.settings.targetLaborRate||0))/100;
+  const targetVariableRate=(targetCostForMonth(currentMonth)+targetLaborForMonth(currentMonth))/100;
   const contributionRate=1-targetVariableRate;
   if(s.profit==null || contributionRate<=0){
     breakEvenNeed.textContent='--';
@@ -1250,7 +1330,7 @@ function renderHome(){
         msg=`${s.enteredSalesDays}営業日平均では月末 ${yen(s.forecast)} の予測です。目標との差が続いているため、客数と客単価を順番に確認しましょう。`;
         cls='notice bad';
       }
-    }else if(s.purchaseRate>state.settings.targetCostRate+5){
+    }else if(s.purchaseRate>targetCostForMonth(currentMonth)+5){
       msg=`仕入率が ${pct(s.purchaseRate)} と高めです。月末の在庫前なので原価率とは別ですが、仕入過多や在庫増加がないか確認してください。`;
       cls='notice';
     }else{
@@ -1272,6 +1352,21 @@ function renderHome(){
     c.title=`${d}: ${yen(v)}`;
     if(miniChart) miniChart.appendChild(c);
   });
+
+  if(managementAlerts){
+    const alerts=[];
+    if(s.enteredSalesDays===0) alerts.push(['good','まず今日の数字を入力すると、今月のチェックが始まります。']);
+    if(goal>0&&s.enteredSalesDays>=3&&s.forecast!=null){
+      const diff=s.forecast-goal;
+      if(diff<0) alerts.push(['warn','売上ペース：月末予測は目標より '+yen(Math.abs(diff))+' 少ない見込みです。']);
+      else alerts.push(['good','売上ペース：現在の月末予測は目標を '+yen(diff)+' 上回る見込みです。']);
+    }
+    if(s.purchaseRate>targetCostForMonth(currentMonth)+5) alerts.push(['warn','仕入率が目標原価率より高めです。仕入量・在庫・ロスを確認しましょう。']);
+    if(s.laborRate!=null&&s.laborRate>targetLaborForMonth(currentMonth)+3) alerts.push(['warn','人件費率が目標より高めです。弱い曜日・時間帯の売上とシフトを確認しましょう。']);
+    if(s.profit!=null&&s.profit<0) alerts.push(['bad','営業利益が赤字です。売上・原価・人件費のうち、目標との差が大きい項目から確認しましょう。']);
+    if(!alerts.length) alerts.push(['good','今のところ大きな崩れは見えていません。入力を続けて変化を見ていきましょう。']);
+    managementAlerts.innerHTML=alerts.slice(0,4).map(a=>'<div class="alert-item '+a[0]+'">'+a[1]+'</div>').join('');
+  }
 
   renderHomeCharts();
 }
@@ -1420,16 +1515,17 @@ function renderAnalysis(){
   mCommunication.value=costs.communication ?? state.settings.communication ?? 0;
   mOtherMonthlyCost.value=costs.otherMonthlyCost ?? state.settings.otherMonthlyCost ?? 0;
   mLoan.value=md.loan ?? state.settings.loan ?? 0;
+  setTimeout(refreshMoneyInputFormats,0);
 
   let msg='月次データを入れると診断します。',cls='notice good';
   if(s.sales>0){
     if(!s.hasStockData){
       msg=`今月の仕入率は ${pct(s.purchaseRate)}。仕入率と原価率は別です。月末の在庫を入れると実際の原価率が確定します。`;
       cls='notice';
-    }else if(s.actualCostRate>state.settings.targetCostRate+3){
-      msg=`原価率 ${pct(s.actualCostRate)}。目標 ${pct(state.settings.targetCostRate)} より高めです。仕入価格、廃棄、盛付量、値付けの順で確認すると原因を探しやすいです。`;
+    }else if(s.actualCostRate>targetCostForMonth(m)+3){
+      msg=`原価率 ${pct(s.actualCostRate)}。目標 ${pct(targetCostForMonth(m))} より高めです。仕入価格、廃棄、盛付量、値付けの順で確認すると原因を探しやすいです。`;
       cls='notice bad';
-    }else if(s.laborRate!=null && s.laborRate>state.settings.targetLaborRate+3){
+    }else if(s.laborRate!=null && s.laborRate>targetLaborForMonth(m)+3){
       msg=`原価は大きく崩れていませんが、人件費率 ${pct(s.laborRate)} が目標より高めです。人員削減より先に、弱い曜日・時間帯の売上を確認してください。`;
       cls='notice';
     }else if(s.profit!=null && s.profit<0){
@@ -1441,6 +1537,13 @@ function renderAnalysis(){
     }
   }
   monthlyAdvice.textContent=msg; monthlyAdvice.className=cls;
+  if(monthlyReportSummary){
+    const reportItems=[
+      ['売上',yen(s.sales)],['仕入',yen(s.totalPurchases)],['原価率',s.actualCostRate==null?'未確定':pct(s.actualCostRate)],['人件費率',s.laborRate==null?'--':pct(s.laborRate)],
+      ['毎月の経費',yen(s.monthlyCosts||0)],['営業利益',s.profit==null?'未確定':yen(s.profit)],['借入返済',yen(effectiveLoan)],['返済後の残り',s.cashAfterDebt==null?'未確定':yen(s.cashAfterDebt)]
+    ];
+    monthlyReportSummary.innerHTML=reportItems.map(x=>'<div class="report-cell"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('');
+  }
   renderHomeCharts();
 }
 
@@ -1499,11 +1602,17 @@ saveMonthly.onclick=()=>{
   renderHome();
   showToast('今月の数字を保存しました');
 };
+function loadGoalMonthUI(month){
+  const m=month||goalMonth?.value||ym(today);
+  if(goalMonth)goalMonth.value=m;
+  if(goal)goal.value=goalForMonth(m)||'';
+  if(monthlyOpenDays)monthlyOpenDays.value=openDaysForMonth(m);
+  if(targetCostRate)targetCostRate.value=targetCostForMonth(m);
+  if(targetLaborRate)targetLaborRate.value=targetLaborForMonth(m);
+  setTimeout(refreshMoneyInputFormats,0);
+}
 function loadSettingsUI(){
-  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate'].forEach(k=>{
-    const el=document.getElementById(k);
-    if(el) el.value=state.settings[k];
-  });
+  loadGoalMonthUI(goalMonth?.value||ym(today));
 
   const mode=state.settings.taxMode==='excluded'?'excluded':'included';
   if($('taxIncluded')) $('taxIncluded').checked=mode==='included';
@@ -1513,7 +1622,10 @@ function loadSettingsUI(){
 }
 saveSettings.onclick=()=>{
   const firstSetup=Object.keys(state.days||{}).length===0;
-  ['goal','monthlyOpenDays','targetCostRate','targetLaborRate'].forEach(k=>state.settings[k]=num(k));
+  const gm=goalMonth?.value||ym(today);
+  state.months[gm]={...(state.months[gm]||{}),goal:num('goal'),monthlyOpenDays:num('monthlyOpenDays'),targetCostRate:num('targetCostRate'),targetLaborRate:num('targetLaborRate')};
+  if(!state.settings.goal)state.settings.goal=num('goal');
+  if(!state.settings.monthlyOpenDays)state.settings.monthlyOpenDays=num('monthlyOpenDays');
   state.settings.taxMode=($('taxExcluded')&&$('taxExcluded').checked)?'excluded':'included';
   state.settings.purchaseCategories=Array.from({length:10},(_,i)=>String($('purchaseCatName'+i)?.value||'').trim());
   updateTaxModeLabels();
@@ -1539,6 +1651,55 @@ toggleGuide.onclick=()=>{
 };
 date.onchange=()=>loadDayForm(date.value);
 analysisMonth.onchange=renderAnalysis;
+if(goalMonth)goalMonth.onchange=()=>loadGoalMonthUI(goalMonth.value);
+function renderPrintReport(){
+  if(!printReport)return;
+  const m=analysisMonth.value||ym(today),s=calcMonth(m),mc=monthlyCostDetail(m),goalM=goalForMonth(m);
+  const title=m.replace('-','年')+'月 月次レポート';
+  const rows=[['売上',yen(s.sales)],['売上目標',yen(goalM)],['仕入',yen(s.totalPurchases)],['仕入率',pct(s.purchaseRate)],['実際の原価',s.actualCost==null?'月末在庫で確定':yen(s.actualCost)],['原価率',s.actualCostRate==null?'未確定':pct(s.actualCostRate)],['人件費',yen(s.labor)],['人件費率',s.laborRate==null?'--':pct(s.laborRate)],['経費合計',yen(mc.total)],['営業利益',s.profit==null?'未確定':yen(s.profit)],['借入返済',yen(mc.loan)],['返済後の残り',s.cashAfterDebt==null?'未確定':yen(s.cashAfterDebt)]];
+  printReport.innerHTML='<h1>飲食店利益ナビ</h1><div class="print-sub">'+title+'</div><h2>経営サマリー</h2><table><tbody>'+rows.map(r=>'<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>').join('')+'</tbody></table><h2>今月のひとこと</h2><div style="font-size:12px;line-height:1.7">'+escapeHtml(monthlyAdvice?.textContent||'')+'</div><div class="print-note">このレポートは飲食店の自己分析・経営管理用です。税務申告、会計処理、税務判断を代替するものではありません。表示値は入力内容に基づく参考値です。</div>';
+}
+if(printReportBtn)printReportBtn.onclick=()=>{renderPrintReport();setTimeout(()=>window.print(),80)};
+
+function currentMonthKey(){return ym(new Date())}
+function copyPreviousMonthSetup(target){
+  const prevKey=previousMonth(target),prev=state.months[prevKey]||{};
+  const cur=state.months[target]||{};
+  state.months[target]={...cur,
+    goal:prev.goal??goalForMonth(prevKey),monthlyOpenDays:prev.monthlyOpenDays??openDaysForMonth(prevKey),targetCostRate:prev.targetCostRate??targetCostForMonth(prevKey),targetLaborRate:prev.targetLaborRate??targetLaborForMonth(prevKey),
+    costs:{...(cur.costs||{}),...((prev.costs)||{})},loan:prev.loan??state.settings.loan
+  };
+  persist();
+}
+function closeMonthStart(mark=true){
+  if(!monthStartOverlay)return;
+  monthStartOverlay.classList.remove('show');monthStartOverlay.setAttribute('aria-hidden','true');
+  if(mark){state.meta.lastMonthPrompt=currentMonthKey();persist();}
+}
+function maybeShowMonthStart(){
+  const key=currentMonthKey();
+  if(Number(state.meta?.introVersion||0)<3)return;
+  if(state.meta?.lastMonthPrompt===key)return;
+  if(!monthStartOverlay)return;
+  monthStartTitle.textContent=(new Date().getMonth()+1)+'月になりました';
+  monthStartOverlay.classList.add('show');monthStartOverlay.setAttribute('aria-hidden','false');
+}
+if(monthStartBegin)monthStartBegin.onclick=()=>{const k=currentMonthKey();closeMonthStart(true);if(goalMonth)goalMonth.value=k;loadGoalMonthUI(k);setScreen('settings');showToast('今月の目標を確認しましょう');};
+if(monthStartCosts)monthStartCosts.onclick=()=>{const k=currentMonthKey();closeMonthStart(true);analysisMonth.value=k;renderAnalysis();setScreen('analysis');showToast('今月の固定費を確認しましょう');};
+if(monthStartCopy)monthStartCopy.onclick=()=>{const k=currentMonthKey();copyPreviousMonthSetup(k);closeMonthStart(true);if(goalMonth)goalMonth.value=k;loadGoalMonthUI(k);analysisMonth.value=k;renderAnalysis();renderHome();showToast('前月の設定を引き継ぎました');};
+if(monthStartLater)monthStartLater.onclick=()=>closeMonthStart(true);
+
+const moneyInputIds=['goal','cash','card','qr','other','purchase','purchaseUncategorized','laborDay','waste','openingStock','monthlyExtraPurchase','closingStock','monthlyLabor','mRent','mLease','mElectricity','mGas','mWater','mInsurance','mCommunication','mOtherMonthlyCost','mLoan'];
+function attachMoneyFormatter(el){
+  if(!el||el.dataset.moneyFormat==='1')return;el.dataset.moneyFormat='1';
+  try{el.type='text'}catch(e){}
+  const clean=()=>{el.value=String(el.value||'').replace(/,/g,'')};
+  const format=()=>{const raw=String(el.value||'').replace(/,/g,'').trim();if(raw===''){return}const n=Number(raw);if(Number.isFinite(n))el.value=Math.round(n).toLocaleString('ja-JP')};
+  el.addEventListener('focus',clean);el.addEventListener('blur',format);format();
+}
+function attachMoneyFormatters(){moneyInputIds.forEach(id=>attachMoneyFormatter($(id)));document.querySelectorAll('[data-purchase-cat]').forEach(attachMoneyFormatter)}
+function refreshMoneyInputFormats(){moneyInputIds.forEach(id=>{const el=$(id);if(!el||document.activeElement===el)return;const raw=String(el.value||'').replace(/,/g,'').trim();if(raw!==''&&Number.isFinite(Number(raw)))el.value=Math.round(Number(raw)).toLocaleString('ja-JP')});document.querySelectorAll('[data-purchase-cat]').forEach(el=>{if(document.activeElement===el)return;const raw=String(el.value||'').replace(/,/g,'').trim();if(raw!==''&&Number.isFinite(Number(raw)))el.value=Math.round(Number(raw)).toLocaleString('ja-JP')})}
+
 exportBtn.onclick=()=>{
   const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -1577,7 +1738,9 @@ renderHome();
 renderAnalysis();
 renderRecent();
 loadDayForm(date.value);
+attachMoneyFormatters();
 initIntro();
+setTimeout(maybeShowMonthStart,250);
 
 </script>
 
