@@ -1,4 +1,4 @@
-const CACHE_NAME='profit-navi-v39';
+const CACHE_NAME='profit-navi-v40';
 const APP_SHELL = [
   './',
   './index.html',
