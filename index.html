@@ -20,7 +20,7 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino 
 .app{max-width:760px;margin:auto;padding:14px 14px 92px}
 .top{display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px}
 .title{font-size:22px;font-weight:900;letter-spacing:-.02em}
-.subtitle{font-size:12px;color:var(--sub);margin-top:4px}
+.subtitle{font-size:12px;color:var(--sub);margin-top:4px}.shop-display{font-size:12px;font-weight:850;color:#0f234d;margin-top:4px;display:none}.shop-display.show{display:block}
 .pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef2f7;font-size:11px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 4px 18px rgba(17,24,39,.04)}
 .hero .label{color:var(--sub);font-size:13px}
@@ -203,7 +203,7 @@ th:first-child,td:first-child{text-align:left}
   <div class="top">
     <div>
       <div class="title">飲食店利益ナビ</div>
-      <div class="subtitle">30秒入力 → 今月どうなのか一目でわかる</div>
+      <div class="subtitle">30秒入力 → 今月どうなのか一目でわかる</div><div class="shop-display" id="shopDisplay"></div>
     </div>
     <span class="pill" id="todayPill"></span>
   </div>
@@ -524,6 +524,14 @@ th:first-child,td:first-child{text-align:left}
 
   <section id="settings" class="screen">
     <div class="card">
+      <div class="section-title">店舗情報</div>
+      <label>店舗名（任意）</label><input type="text" id="shopName" maxlength="60" placeholder="例：〇〇食堂">
+      <div class="small">入力するとホーム画面と月次PDFレポートに表示されます。</div>
+      <label>担当者名（任意）</label><input type="text" id="ownerName" maxlength="60" placeholder="例：山田 太郎">
+      <div class="small">PDFレポートに表示できます。空欄でも問題ありません。</div>
+    </div>
+
+    <div class="card">
       <div class="section-title">お店の目標設定</div>
       <label>目標を設定する月</label><input type="month" id="goalMonth">
       <label>この月の売上目標</label><input type="number" inputmode="numeric" id="goal" value="2800000">
@@ -675,7 +683,7 @@ const KEY='restaurant-profit-navi';
 const defaultState={
   days:{},
   months:{},
-  settings:{taxMode:'included',goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,rent:0,lease:0,electricity:0,gas:0,water:0,insurance:0,communication:0,otherMonthlyCost:0,loan:90000,purchaseCategories:['','','','','','','','','','']},
+  settings:{shopName:'',ownerName:'',taxMode:'included',goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,rent:0,lease:0,electricity:0,gas:0,water:0,insurance:0,communication:0,otherMonthlyCost:0,loan:90000,purchaseCategories:['','','','','','','','','','']},
   meta:{seenIntro:false,introVersion:0,lastMonthPrompt:''}
 };
 let state=load();
@@ -687,6 +695,9 @@ if(state.settings.fixed!=null && state.settings.otherMonthlyCost==null){
 });
 const $=id=>document.getElementById(id);
 const todayPill=$('todayPill');
+const shopDisplay=$('shopDisplay');
+const shopName=$('shopName');
+const ownerName=$('ownerName');
 const date=$('date');
 const analysisMonth=$('analysisMonth');
 const bottomTabs=$('bottomTabs');
@@ -1269,6 +1280,7 @@ function renderHomeCharts(){
 }
 
 function renderHome(){
+  if(shopDisplay){const n=String(state.settings.shopName||'').trim();shopDisplay.textContent=n;shopDisplay.classList.toggle('show',!!n);}
   updateGettingStarted();
   updateTaxModeLabels();
   const s=currentForecast(), currentMonth=ym(today), goal=goalForMonth(currentMonth), ratio=goal ? s.sales/goal*100 : 0;
@@ -1621,6 +1633,8 @@ function loadGoalMonthUI(month){
 }
 function loadSettingsUI(){
   loadGoalMonthUI(goalMonth?.value||ym(today));
+  if(shopName)shopName.value=state.settings.shopName||'';
+  if(ownerName)ownerName.value=state.settings.ownerName||'';
 
   const mode=state.settings.taxMode==='excluded'?'excluded':'included';
   if($('taxIncluded')) $('taxIncluded').checked=mode==='included';
@@ -1631,6 +1645,8 @@ function loadSettingsUI(){
 saveSettings.onclick=()=>{
   const firstSetup=Object.keys(state.days||{}).length===0;
   const gm=goalMonth?.value||ym(today);
+  state.settings.shopName=String(shopName?.value||'').trim();
+  state.settings.ownerName=String(ownerName?.value||'').trim();
   state.months[gm]={...(state.months[gm]||{}),goal:num('goal'),monthlyOpenDays:num('monthlyOpenDays'),targetCostRate:num('targetCostRate'),targetLaborRate:num('targetLaborRate')};
   if(!state.settings.goal)state.settings.goal=num('goal');
   if(!state.settings.monthlyOpenDays)state.settings.monthlyOpenDays=num('monthlyOpenDays');
@@ -1667,7 +1683,7 @@ function renderPrintReport(){
   const goalRate=goalM>0?s.sales/goalM*100:null;
   const fl=(s.actualCostRate!=null&&s.laborRate!=null)?s.actualCostRate+s.laborRate:null;
   const rows=[['売上',yen(s.sales)],['売上目標',yen(goalM)],['目標達成率',goalRate==null?'--':pct(goalRate)],['客数',Math.round(s.customers||0).toLocaleString('ja-JP')+'人'],['客単価',s.customers?yen(s.avgSpend):'--'],['仕入',yen(s.totalPurchases)],['仕入率',pct(s.purchaseRate)],['実際の原価',s.actualCost==null?'月末在庫で確定':yen(s.actualCost)],['原価率',s.actualCostRate==null?'未確定':pct(s.actualCostRate)],['人件費',yen(s.labor)],['人件費率',s.laborRate==null?'--':pct(s.laborRate)],['原価＋人件費率',fl==null?'--':pct(fl)],['経費合計',yen(mc.total)],['営業利益',s.profit==null?'未確定':yen(s.profit)],['借入返済',yen(mc.loan)],['返済後の残り',s.cashAfterDebt==null?'未確定':yen(s.cashAfterDebt)]];
-  printReport.innerHTML='<h1>飲食店利益ナビ</h1><div class="print-sub">'+title+'｜経営管理レポート</div><h2>経営サマリー</h2><table><tbody>'+rows.map(r=>'<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>').join('')+'</tbody></table><h2>今月のひとこと</h2><div style="font-size:12px;line-height:1.7">'+escapeHtml(monthlyAdvice?.textContent||'')+'</div><h2>確認メモ</h2><div style="height:80px;border:1px solid #ddd;border-radius:8px"></div><div class="print-note">このレポートは飲食店の自己分析・経営管理用です。税務申告、会計処理、税務判断を代替するものではありません。表示値は入力内容に基づく参考値です。</div>';
+  printReport.innerHTML='<h1>'+escapeHtml(state.settings.shopName||'飲食店利益ナビ')+'</h1><div class="print-sub">'+title+'｜経営管理レポート'+(state.settings.ownerName?'｜担当 '+escapeHtml(state.settings.ownerName):'')+'</div><h2>経営サマリー</h2><table><tbody>'+rows.map(r=>'<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>').join('')+'</tbody></table><h2>今月のひとこと</h2><div style="font-size:12px;line-height:1.7">'+escapeHtml(monthlyAdvice?.textContent||'')+'</div><h2>確認メモ</h2><div style="height:80px;border:1px solid #ddd;border-radius:8px"></div><div class="print-note">このレポートは飲食店の自己分析・経営管理用です。税務申告、会計処理、税務判断を代替するものではありません。表示値は入力内容に基づく参考値です。</div>';
 }
 function makePdfFromJpeg(jpegBytes,imgW,imgH){
   const enc=new TextEncoder();
@@ -1698,7 +1714,7 @@ async function createMonthlyPdfFile(){
   const rows=[['売上',yen(s.sales)],['売上目標',yen(goalM)],['目標達成率',goalRate==null?'--':pct(goalRate)],['客数',Math.round(s.customers||0).toLocaleString('ja-JP')+'人'],['客単価',s.customers?yen(s.avgSpend):'--'],['仕入',yen(s.totalPurchases)],['仕入率',pct(s.purchaseRate)],['実際の原価',s.actualCost==null?'月末在庫で確定':yen(s.actualCost)],['原価率',s.actualCostRate==null?'未確定':pct(s.actualCostRate)],['人件費',yen(s.labor)],['人件費率',s.laborRate==null?'--':pct(s.laborRate)],['原価＋人件費率',fl==null?'--':pct(fl)],['経費合計',yen(mc.total)],['営業利益',s.profit==null?'未確定':yen(s.profit)],['借入返済',yen(mc.loan)],['返済後の残り',s.cashAfterDebt==null?'未確定':yen(s.cashAfterDebt)]];
   const W=1240,H=1754,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
   ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#0f234d';ctx.fillRect(0,0,W,170);
-  ctx.fillStyle='#ffffff';ctx.font='bold 48px sans-serif';ctx.fillText('飲食店利益ナビ',70,78);ctx.font='26px sans-serif';ctx.fillText(m.replace('-','年')+'月 月次レポート｜経営管理レポート',70,128);
+  ctx.fillStyle='#ffffff';ctx.font='bold 48px sans-serif';ctx.fillText(String(state.settings.shopName||'飲食店利益ナビ'),70,78);ctx.font='26px sans-serif';ctx.fillText(m.replace('-','年')+'月 月次レポート｜経営管理レポート'+(state.settings.ownerName?'｜担当 '+state.settings.ownerName:''),70,128);
   let y=220;ctx.fillStyle='#0f234d';ctx.font='bold 34px sans-serif';ctx.fillText('経営サマリー',70,y);y+=34;
   ctx.font='25px sans-serif';
   for(const [label,value] of rows){y+=52;ctx.fillStyle=(Math.floor((y-306)/52)%2===0)?'#f8fafc':'#ffffff';ctx.fillRect(70,y-38,1100,48);ctx.fillStyle='#475569';ctx.textAlign='left';ctx.fillText(label,92,y-5);ctx.fillStyle='#0f234d';ctx.font='bold 25px sans-serif';ctx.textAlign='right';ctx.fillText(value,1145,y-5);ctx.font='25px sans-serif'}
@@ -1708,7 +1724,7 @@ async function createMonthlyPdfFile(){
   ctx.fillStyle='#64748b';ctx.font='20px sans-serif';const note='このレポートは飲食店の自己分析・経営管理用です。税務申告、会計処理、税務判断を代替するものではありません。表示値は入力内容に基づく参考値です。';for(const line of wrapCanvasText(ctx,note,1080)){ctx.fillText(line,70,y);y+=28}
   const jpegBlob=await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('画像生成に失敗しました')),'image/jpeg',0.92));
   const jpegBytes=new Uint8Array(await jpegBlob.arrayBuffer());const pdfBytes=makePdfFromJpeg(jpegBytes,W,H);
-  return new File([pdfBytes],'飲食店利益ナビ_'+m+'_月次レポート.pdf',{type:'application/pdf'});
+  const safeShop=String(state.settings.shopName||'飲食店利益ナビ').replace(/[\\/:*?"<>|]/g,'_').slice(0,40);return new File([pdfBytes],safeShop+'_'+m+'_月次レポート.pdf',{type:'application/pdf'});
 }
 if(printReportBtn)printReportBtn.onclick=async()=>{
   const old=printReportBtn.textContent;printReportBtn.disabled=true;printReportBtn.textContent='PDFを作成中…';
@@ -1716,7 +1732,7 @@ if(printReportBtn)printReportBtn.onclick=async()=>{
     const file=await createMonthlyPdfFile();
     let shared=false;
     if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
-      try{await navigator.share({files:[file],title:'飲食店利益ナビ 月次レポート'});shared=true}catch(e){if(e&&e.name==='AbortError')return;}
+      try{await navigator.share({files:[file],title:(state.settings.shopName||'飲食店利益ナビ')+' 月次レポート'});shared=true}catch(e){if(e&&e.name==='AbortError')return;}
     }
     if(!shared){const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;a.target='_blank';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),10000);toastMsg('PDFを作成しました')}
   }catch(e){console.error(e);alert('PDFを作成できませんでした。もう一度お試しください。')}
