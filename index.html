@@ -513,7 +513,7 @@ th:first-child,td:first-child{text-align:left}
       <div class="section-title">月次レポート</div>
       <div class="small">その月の売上・目標・原価・人件費・利益を1枚にまとめます。店内共有や税理士への経営状況説明にも使いやすい形式です。</div>
       <div id="monthlyReportSummary" class="report-grid"></div>
-      <button class="secondary" id="printReportBtn" style="width:100%;margin-top:12px">月次レポートを印刷 / PDF保存</button><div class="small" style="margin-top:8px">iPhoneは印刷画面の共有メニューから「ファイルに保存」でPDFとして残せます。</div>
+      <button class="secondary" id="printReportBtn" style="width:100%;margin-top:12px">月次レポートをPDF保存 / 共有</button><div class="small" style="margin-top:8px">端末内でPDFを作成します。iPhoneでは共有画面から「ファイルに保存」を選べます。</div>
     </div>
 
     <div class="card">
@@ -1669,26 +1669,58 @@ function renderPrintReport(){
   const rows=[['売上',yen(s.sales)],['売上目標',yen(goalM)],['目標達成率',goalRate==null?'--':pct(goalRate)],['客数',Math.round(s.customers||0).toLocaleString('ja-JP')+'人'],['客単価',s.customers?yen(s.avgSpend):'--'],['仕入',yen(s.totalPurchases)],['仕入率',pct(s.purchaseRate)],['実際の原価',s.actualCost==null?'月末在庫で確定':yen(s.actualCost)],['原価率',s.actualCostRate==null?'未確定':pct(s.actualCostRate)],['人件費',yen(s.labor)],['人件費率',s.laborRate==null?'--':pct(s.laborRate)],['原価＋人件費率',fl==null?'--':pct(fl)],['経費合計',yen(mc.total)],['営業利益',s.profit==null?'未確定':yen(s.profit)],['借入返済',yen(mc.loan)],['返済後の残り',s.cashAfterDebt==null?'未確定':yen(s.cashAfterDebt)]];
   printReport.innerHTML='<h1>飲食店利益ナビ</h1><div class="print-sub">'+title+'｜経営管理レポート</div><h2>経営サマリー</h2><table><tbody>'+rows.map(r=>'<tr><th>'+r[0]+'</th><td>'+r[1]+'</td></tr>').join('')+'</tbody></table><h2>今月のひとこと</h2><div style="font-size:12px;line-height:1.7">'+escapeHtml(monthlyAdvice?.textContent||'')+'</div><h2>確認メモ</h2><div style="height:80px;border:1px solid #ddd;border-radius:8px"></div><div class="print-note">このレポートは飲食店の自己分析・経営管理用です。税務申告、会計処理、税務判断を代替するものではありません。表示値は入力内容に基づく参考値です。</div>';
 }
-function isStandaloneApp(){
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+function makePdfFromJpeg(jpegBytes,imgW,imgH){
+  const enc=new TextEncoder();
+  const chunks=[];let pos=0;const offsets=[0];
+  const push=(x)=>{const b=typeof x==='string'?enc.encode(x):x;chunks.push(b);pos+=b.length};
+  push('%PDF-1.3\n%\xFF\xFF\xFF\xFF\n');
+  const obj=(n,body)=>{offsets[n]=pos;push(n+' 0 obj\n');push(body);push('\nendobj\n')};
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  obj(3,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
+  offsets[4]=pos;push('4 0 obj\n<< /Type /XObject /Subtype /Image /Width '+imgW+' /Height '+imgH+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpegBytes.length+' >>\nstream\n');push(jpegBytes);push('\nendstream\nendobj\n');
+  const content='q\n595 0 0 842 0 0 cm\n/Im0 Do\nQ\n';
+  obj(5,'<< /Length '+enc.encode(content).length+' >>\nstream\n'+content+'endstream');
+  const xref=pos;push('xref\n0 6\n0000000000 65535 f \n');
+  for(let i=1;i<=5;i++)push(String(offsets[i]).padStart(10,'0')+' 00000 n \n');
+  push('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF');
+  const out=new Uint8Array(pos);let at=0;for(const c of chunks){out.set(c,at);at+=c.length}return out;
 }
-if(printReportBtn)printReportBtn.onclick=()=>{
-  if(isStandaloneApp()){
-    const u=new URL(location.href);
-    u.searchParams.set('pdf','1');
-    u.searchParams.set('month',analysisMonth.value||ym(today));
-    const w=window.open(u.toString(),'_blank');
-    if(!w){
-      alert('Safariを開けませんでした。右上または共有メニューから「Safariで開く」を選び、もう一度お試しください。');
-    }
-    return;
-  }
-  renderPrintReport();
+function wrapCanvasText(ctx,text,maxWidth){
+  const chars=[...String(text||'')],lines=[];let line='';
+  for(const ch of chars){const t=line+ch;if(ctx.measureText(t).width>maxWidth&&line){lines.push(line);line=ch}else line=t}
+  if(line)lines.push(line);return lines;
+}
+async function createMonthlyPdfFile(){
+  const m=analysisMonth.value||ym(today),s=calcMonth(m),mc=monthlyCostDetail(m),goalM=goalForMonth(m);
+  const goalRate=goalM>0?s.sales/goalM*100:null;
+  const fl=(s.actualCostRate!=null&&s.laborRate!=null)?s.actualCostRate+s.laborRate:null;
+  const rows=[['売上',yen(s.sales)],['売上目標',yen(goalM)],['目標達成率',goalRate==null?'--':pct(goalRate)],['客数',Math.round(s.customers||0).toLocaleString('ja-JP')+'人'],['客単価',s.customers?yen(s.avgSpend):'--'],['仕入',yen(s.totalPurchases)],['仕入率',pct(s.purchaseRate)],['実際の原価',s.actualCost==null?'月末在庫で確定':yen(s.actualCost)],['原価率',s.actualCostRate==null?'未確定':pct(s.actualCostRate)],['人件費',yen(s.labor)],['人件費率',s.laborRate==null?'--':pct(s.laborRate)],['原価＋人件費率',fl==null?'--':pct(fl)],['経費合計',yen(mc.total)],['営業利益',s.profit==null?'未確定':yen(s.profit)],['借入返済',yen(mc.loan)],['返済後の残り',s.cashAfterDebt==null?'未確定':yen(s.cashAfterDebt)]];
+  const W=1240,H=1754,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,W,H);ctx.fillStyle='#0f234d';ctx.fillRect(0,0,W,170);
+  ctx.fillStyle='#ffffff';ctx.font='bold 48px sans-serif';ctx.fillText('飲食店利益ナビ',70,78);ctx.font='26px sans-serif';ctx.fillText(m.replace('-','年')+'月 月次レポート｜経営管理レポート',70,128);
+  let y=220;ctx.fillStyle='#0f234d';ctx.font='bold 34px sans-serif';ctx.fillText('経営サマリー',70,y);y+=34;
+  ctx.font='25px sans-serif';
+  for(const [label,value] of rows){y+=52;ctx.fillStyle=(Math.floor((y-306)/52)%2===0)?'#f8fafc':'#ffffff';ctx.fillRect(70,y-38,1100,48);ctx.fillStyle='#475569';ctx.textAlign='left';ctx.fillText(label,92,y-5);ctx.fillStyle='#0f234d';ctx.font='bold 25px sans-serif';ctx.textAlign='right';ctx.fillText(value,1145,y-5);ctx.font='25px sans-serif'}
+  ctx.textAlign='left';y+=70;ctx.fillStyle='#0f234d';ctx.font='bold 32px sans-serif';ctx.fillText('今月のひとこと',70,y);y+=42;ctx.fillStyle='#334155';ctx.font='24px sans-serif';
+  const advice=(monthlyAdvice?.textContent||'').trim();for(const line of wrapCanvasText(ctx,advice,1080).slice(0,4)){ctx.fillText(line,70,y);y+=34}
+  y+=28;ctx.fillStyle='#0f234d';ctx.font='bold 30px sans-serif';ctx.fillText('確認メモ',70,y);y+=24;ctx.strokeStyle='#cbd5e1';ctx.lineWidth=2;ctx.strokeRect(70,y,1100,130);y+=172;
+  ctx.fillStyle='#64748b';ctx.font='20px sans-serif';const note='このレポートは飲食店の自己分析・経営管理用です。税務申告、会計処理、税務判断を代替するものではありません。表示値は入力内容に基づく参考値です。';for(const line of wrapCanvasText(ctx,note,1080)){ctx.fillText(line,70,y);y+=28}
+  const jpegBlob=await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('画像生成に失敗しました')),'image/jpeg',0.92));
+  const jpegBytes=new Uint8Array(await jpegBlob.arrayBuffer());const pdfBytes=makePdfFromJpeg(jpegBytes,W,H);
+  return new File([pdfBytes],'飲食店利益ナビ_'+m+'_月次レポート.pdf',{type:'application/pdf'});
+}
+if(printReportBtn)printReportBtn.onclick=async()=>{
+  const old=printReportBtn.textContent;printReportBtn.disabled=true;printReportBtn.textContent='PDFを作成中…';
   try{
-    window.print();
-  }catch(e){
-    alert('印刷画面を開けませんでした。Safariの共有メニューから「プリント」を選んでください。');
-  }
+    const file=await createMonthlyPdfFile();
+    let shared=false;
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+      try{await navigator.share({files:[file],title:'飲食店利益ナビ 月次レポート'});shared=true}catch(e){if(e&&e.name==='AbortError')return;}
+    }
+    if(!shared){const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;a.target='_blank';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),10000);toastMsg('PDFを作成しました')}
+  }catch(e){console.error(e);alert('PDFを作成できませんでした。もう一度お試しください。')}
+  finally{printReportBtn.disabled=false;printReportBtn.textContent=old}
 };
 
 function currentMonthKey(){return ym(new Date())}
@@ -1770,20 +1802,7 @@ renderRecent();
 loadDayForm(date.value);
 attachMoneyFormatters();
 initIntro();
-const pdfParams=new URLSearchParams(location.search);
-if(pdfParams.get('pdf')==='1'){
-  const reportMonth=pdfParams.get('month');
-  if(reportMonth)analysisMonth.value=reportMonth;
-  renderAnalysis();
-  setScreen('analysis');
-  if(printReportBtn)printReportBtn.textContent='PDF保存を続ける';
-  setTimeout(()=>{
-    if(printReportBtn)printReportBtn.scrollIntoView({behavior:'smooth',block:'center'});
-    alert('Safariで開きました。「PDF保存を続ける」をタップすると印刷画面が開きます。');
-  },300);
-}else{
-  setTimeout(maybeShowMonthStart,250);
-}
+setTimeout(maybeShowMonthStart,250);
 
 </script>
 
