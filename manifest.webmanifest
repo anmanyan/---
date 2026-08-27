@@ -1,0 +1,14 @@
+{
+  "name": "飲食店利益ナビ",
+  "short_name": "利益ナビ",
+  "description": "飲食店の売上・仕入・原価率・人件費率・利益の目安をスマホで見える化する経営管理ツール",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#111827",
+  "icons": [
+    {"src": "./icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "./icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}
