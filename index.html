@@ -142,6 +142,23 @@ th:first-child,td:first-child{text-align:left}
 .native-legend-row{display:flex;align-items:flex-start;gap:7px;min-width:0;line-height:1.35}
 .native-legend-dot{width:10px;height:10px;border-radius:50%}
 
+.chart-total{font-size:14px;font-weight:900;color:#0f234d;margin-top:8px}
+.getting-started{border:2px solid #dbeafe;background:linear-gradient(180deg,#f8fbff 0%,#ffffff 100%)}
+.getting-steps{display:grid;gap:9px;margin-top:12px}
+.getting-step{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid #e5e7eb;background:#fff;border-radius:14px;padding:11px}
+.getting-no{width:30px;height:30px;border-radius:999px;background:#0f234d;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900}
+.getting-step b{display:block;font-size:13px;color:#0f234d}.getting-step small{display:block;font-size:11px;color:var(--sub);margin-top:2px;line-height:1.4}
+.getting-step button{padding:8px 10px;font-size:12px;background:#eef2ff;color:#0f234d;white-space:nowrap}
+.purchase-cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.purchase-total-box{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:12px 13px;background:#f8fafc;border:1px solid var(--line);border-radius:12px}
+.purchase-total-box b{font-size:18px;color:#0f234d}
+.purchase-breakdown-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.purchase-breakdown-row:last-child{border-bottom:0}
+.native-donut-box{position:relative;width:138px;height:138px;flex:0 0 auto}
+.native-donut-center{position:absolute;inset:35px;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
+.native-donut-center span{font-size:9px;color:var(--sub);line-height:1.2}.native-donut-center b{font-size:12px;color:#0f234d;margin-top:2px}
+@media(max-width:430px){.getting-step{grid-template-columns:32px 1fr}.getting-step button{grid-column:2;width:100%}.purchase-cat-grid{grid-template-columns:1fr 1fr}}
+
 @media(max-width:390px){
   .monthly-chart-wrap{height:168px}
   .monthly-value-row span{font-size:8px}
@@ -187,10 +204,10 @@ th:first-child,td:first-child{text-align:left}
           </svg>
         </div>
         <div class="onboard-title">飲食店利益ナビ</div>
-        <div class="onboard-sub">シンプル入力で、お店の数字を見える化</div>
+        <div class="onboard-sub">あやふやだった毎日の売上・仕入を、かんたん見える化。</div>
         <div class="onboard-divider"><span class="line"></span><span class="dot"></span><span class="line"></span></div>
-        <div class="onboard-hook">お店の現状を<span class="accent">すぐに把握！</span></div>
-        <div class="onboard-copy">売上・仕入・原価率・利益予測を<br>わかりやすくまとめて確認できます。</div>
+        <div class="onboard-hook">最初は<span class="accent">3ステップ</span>だけ</div>
+        <div class="onboard-copy">① お店の目標を設定 → ② 今日の数字を入力 → ③ ホームで確認。<br>迷わないよう、最初の順番から案内します。</div>
 
         <div class="feature-grid">
           <div class="feature-card feature-green">
@@ -245,30 +262,30 @@ th:first-child,td:first-child{text-align:left}
         </div>
 
         <div class="onboard-actions">
-          <button class="onboard-primary" id="startApp">はじめる</button>
-          <button class="onboard-secondary" id="toggleGuide">使い方を見る</button>
+          <button class="onboard-primary" id="startApp">① まずお店の設定をする</button>
+          <button class="onboard-secondary" id="toggleGuide">使い方を閉じる</button>
         </div>
 
-        <div id="guideSteps" class="steps">
+        <div id="guideSteps" class="steps show">
           <div class="step">
             <div class="step-no">1</div>
             <div class="step-text">
-              <b>毎日の売上と仕入を入力</b>
-              <span>現金・クレジット・QR・その他・客数・仕入だけでもOKです。</span>
+              <b>まず「設定」を入れる</b>
+              <span>目標売上・営業日数・目標原価率・目標人件費率を設定します。</span>
             </div>
           </div>
           <div class="step">
             <div class="step-no">2</div>
             <div class="step-text">
-              <b>月末に棚卸と人件費を入力</b>
-              <span>月初と月末の在庫を入れると、原価率と営業利益がより正確になります。</span>
+              <b>次に「今日の入力」</b>
+              <span>売上・客数・仕入を入力。仕入カテゴリを設定した店は、カテゴリ別にも記録できます。</span>
             </div>
           </div>
           <div class="step">
             <div class="step-no">3</div>
             <div class="step-text">
-              <b>ホームで自動診断を見る</b>
-              <span>売上ペース、仕入の増え方、利益見込みを分かりやすく表示します。</span>
+              <b>最後に「ホーム」で確認</b>
+              <span>売上ペース・原価率・利益予測・グラフを見て、今月の状態を確認します。</span>
             </div>
           </div>
         </div>
@@ -277,6 +294,15 @@ th:first-child,td:first-child{text-align:left}
   </section>
 
   <section id="home" class="screen">
+    <div class="card getting-started" id="gettingStartedCard" style="display:none">
+      <div class="section-title">はじめに：最初はこの順番</div>
+      <div class="small">どこを触ればいいか迷ったら、上から順に進めればOKです。</div>
+      <div class="getting-steps">
+        <div class="getting-step"><div class="getting-no">1</div><div><b>お店の設定</b><small>目標売上・営業日数などを決めます</small></div><button data-jump="settings">設定へ</button></div>
+        <div class="getting-step"><div class="getting-no">2</div><div><b>今日の数字を入力</b><small>売上・客数・仕入を入れて保存します</small></div><button data-jump="daily">入力へ</button></div>
+        <div class="getting-step"><div class="getting-no">3</div><div><b>結果を見る</b><small>保存後はホームと今月のまとめを確認</small></div><button data-jump="analysis">まとめへ</button></div>
+      </div>
+    </div>
     <div class="card hero">
       <div class="label" id="homeSalesLabel">今月の売上（税込）</div>
       <div class="value" id="monthSales">¥0</div>
@@ -322,6 +348,7 @@ th:first-child,td:first-child{text-align:left}
     <div class="card">
       <div class="section-title">週ごとの売上</div>
       <div class="small" id="weeklySalesBasis">今月の税込売上を週ごとに比べます。</div>
+      <div class="chart-total" id="weeklySalesTotal">今月合計 ¥0</div>
       <div class="chart-wrap weekly-chart-wrap" id="weeklySalesChart"></div>
       <div class="chart-empty" id="weeklySalesEmpty" style="display:none">売上を入力すると表示されます。</div>
     </div>
@@ -329,6 +356,7 @@ th:first-child,td:first-child{text-align:left}
     <div class="card">
       <div class="section-title">月ごとの売上</div>
       <div class="small" id="monthlySalesBasis">直近6か月の税込売上の流れを見ます。</div>
+      <div class="chart-total" id="monthlySalesTotal">表示6か月合計 ¥0</div>
       <div class="chart-wrap monthly-chart-wrap" id="monthlySalesChart"></div>
       <div class="chart-empty" id="monthlySalesEmpty" style="display:none">データがたまると表示されます。</div>
     </div>
@@ -336,6 +364,7 @@ th:first-child,td:first-child{text-align:left}
     <div class="card">
       <div class="section-title">今月のお金の内訳</div>
       <div class="small">今月使っているお金を項目ごとに色分けして、割合で確認できます。</div>
+      <div class="chart-total" id="expenseTotal">今月の支出合計 ¥0</div>
       <div class="chart-wrap expense-chart-wrap" id="expensePieChart"></div>
       <div class="chart-empty" id="expensePieEmpty" style="display:none">仕入・人件費・経費を入力すると表示されます。</div>
     </div>
@@ -353,9 +382,17 @@ th:first-child,td:first-child{text-align:left}
         <div><label>PayPay / QR</label><input type="number" inputmode="numeric" id="qr" placeholder="0"></div>
         <div><label>その他売上</label><input type="number" inputmode="numeric" id="other" placeholder="0"></div>
       </div>
-      <div class="row">
-        <div><label>客数</label><input type="number" inputmode="numeric" id="customers" placeholder="0"></div>
-        <div><label>今日の仕入</label><input type="number" inputmode="numeric" id="purchase" placeholder="0"></div>
+      <label>客数</label><input type="number" inputmode="numeric" id="customers" placeholder="0">
+
+      <div id="purchaseSimpleWrap">
+        <label>今日の仕入</label><input type="number" inputmode="numeric" id="purchase" placeholder="0">
+      </div>
+      <div id="purchaseCategoryWrap" style="display:none;margin-top:10px">
+        <label>今日の仕入（カテゴリ別）</label>
+        <div class="help" style="margin-bottom:8px">設定したカテゴリごとに入力すると、仕入合計を自動計算します。</div>
+        <div class="purchase-cat-grid" id="purchaseCategoryInputs"></div>
+        <label>その他・未分類</label><input type="number" inputmode="numeric" id="purchaseUncategorized" placeholder="0">
+        <div class="purchase-total-box"><span>今日の仕入合計</span><b id="purchaseCategoryTotal">¥0</b></div>
       </div>
       <div class="row">
         <div><label>今日の人件費（任意）</label><input type="number" inputmode="numeric" id="laborDay" placeholder="0"></div>
@@ -396,6 +433,12 @@ th:first-child,td:first-child{text-align:left}
       <div class="summaryline"><div class="summarylabel"><span>営業利益</span><span class="summaryhelp">毎月の経費を引いたあとの利益</span></div><b id="aProfit">--</b></div>
       <div class="summaryline"><div class="summarylabel"><span>借入返済</span><span class="summaryhelp">営業利益とは別に計算</span></div><b id="aLoanRepayment">¥0</b></div>
       <div class="summaryline"><div class="summarylabel"><span>返済後の残り</span><span class="summaryhelp">借入返済を引いたあとの目安</span></div><b id="aCashAfterDebt">--</b></div>
+    </div>
+
+    <div class="card" id="purchaseBreakdownCard">
+      <div class="section-title">今月の仕入内訳</div>
+      <div class="small" style="margin-bottom:8px">「設定」で仕入カテゴリを登録すると、カテゴリ別の合計と割合を確認できます。</div>
+      <div id="purchaseBreakdownSummary"></div>
     </div>
 
     <div class="card">
@@ -461,6 +504,25 @@ th:first-child,td:first-child{text-align:left}
         <div class="small" style="line-height:1.6;margin-top:6px">
           売上を入力するときの基準を選びます。初期設定は「税込」です。<br>
           この設定は経営管理用の表示基準です。消費税の申告額を計算する機能ではありません。<br>税込・税抜を切り替えても、すでに入力済みの売上金額は自動変換されません。
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <div class="section-title">仕入カテゴリ（最大10個）</div>
+        <div class="small" style="line-height:1.65;margin-bottom:10px">
+          店に合わせて自由に名前を付けられます。例：食材、酒、ドリンク、包材など。<br>
+          1つでも設定すると「今日の入力」でカテゴリ別入力に切り替わります。空欄の項目は表示されません。
+        </div>
+        <div class="purchase-cat-grid" id="purchaseCategorySettings">
+          <input id="purchaseCatName0" placeholder="例：食材">
+          <input id="purchaseCatName1" placeholder="例：酒">
+          <input id="purchaseCatName2" placeholder="カテゴリ3">
+          <input id="purchaseCatName3" placeholder="カテゴリ4">
+          <input id="purchaseCatName4" placeholder="カテゴリ5">
+          <input id="purchaseCatName5" placeholder="カテゴリ6">
+          <input id="purchaseCatName6" placeholder="カテゴリ7">
+          <input id="purchaseCatName7" placeholder="カテゴリ8">
+          <input id="purchaseCatName8" placeholder="カテゴリ9">
+          <input id="purchaseCatName9" placeholder="カテゴリ10">
         </div>
       </div>
       <button class="primary" id="saveSettings">設定を保存</button>
@@ -538,8 +600,8 @@ const KEY='restaurant-profit-navi';
 const defaultState={
   days:{},
   months:{},
-  settings:{taxMode:'included',goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,rent:0,lease:0,electricity:0,gas:0,water:0,insurance:0,communication:0,otherMonthlyCost:0,loan:90000},
-  meta:{seenIntro:false}
+  settings:{taxMode:'included',goal:2800000,monthlyOpenDays:26,targetCostRate:32,targetLaborRate:16,rent:0,lease:0,electricity:0,gas:0,water:0,insurance:0,communication:0,otherMonthlyCost:0,loan:90000,purchaseCategories:['','','','','','','','','','']},
+  meta:{seenIntro:false,introVersion:0}
 };
 let state=load();
 if(state.settings.fixed!=null && state.settings.otherMonthlyCost==null){
@@ -599,6 +661,13 @@ const saveDay=$('saveDay');
 const memo=$('memo');
 const customers=$('customers');
 const purchase=$('purchase');
+const purchaseSimpleWrap=$('purchaseSimpleWrap');
+const purchaseCategoryWrap=$('purchaseCategoryWrap');
+const purchaseCategoryInputs=$('purchaseCategoryInputs');
+const purchaseUncategorized=$('purchaseUncategorized');
+const purchaseCategoryTotal=$('purchaseCategoryTotal');
+const purchaseBreakdownSummary=$('purchaseBreakdownSummary');
+const gettingStartedCard=$('gettingStartedCard');
 const laborDay=$('laborDay');
 const waste=$('waste');
 const cash=$('cash');
@@ -834,7 +903,7 @@ function setScreen(screenId){
 }
 function showAppHome(){setScreen('home')}
 function initIntro(){
-  const INTRO_VERSION=2;
+  const INTRO_VERSION=3;
   if(Number(state.meta?.introVersion||0)>=INTRO_VERSION){showAppHome()}
   else{setScreen('welcome')}
 }
@@ -843,9 +912,75 @@ function showToast(message){
   clearTimeout(showToast._t);showToast._t=setTimeout(()=>toast.classList.remove('show'),1600);
 }
 function dayTotal(x){return (x.cash||0)+(x.card||0)+(x.qr||0)+(x.other||0)}
+function purchaseCategorySlots(){
+  const arr=Array.isArray(state.settings.purchaseCategories)?state.settings.purchaseCategories:[];
+  return Array.from({length:10},(_,i)=>String(arr[i]||'').trim());
+}
+function activePurchaseCategories(){
+  return purchaseCategorySlots().map((name,i)=>({name,i})).filter(x=>x.name);
+}
+function renderPurchaseCategorySettings(){
+  const slots=purchaseCategorySlots();
+  for(let i=0;i<10;i++){const el=$('purchaseCatName'+i);if(el)el.value=slots[i]||'';}
+}
+function purchaseBreakdownSum(x){
+  const b=x?.purchaseBreakdown||{};
+  return Object.values(b).reduce((a,v)=>a+Number(v||0),0)+Number(x?.purchaseUncategorized||0);
+}
+function renderPurchaseEntry(x={}){
+  const cats=activePurchaseCategories();
+  const hasCats=cats.length>0;
+  purchaseSimpleWrap.style.display=hasCats?'none':'block';
+  purchaseCategoryWrap.style.display=hasCats?'block':'none';
+  purchase.value=Number(x.purchase||0)||'';
+  if(!hasCats)return;
+  const b=x.purchaseBreakdown||{};
+  purchaseCategoryInputs.innerHTML=cats.map(c=>'<div><label>'+escapeHtml(c.name)+'</label><input type="number" inputmode="numeric" id="purchaseCat'+c.i+'" data-purchase-cat="'+c.i+'" placeholder="0" value="'+(Number(b[c.i]||0)||'')+'"></div>').join('');
+  const categorized=Object.values(b).reduce((a,v)=>a+Number(v||0),0);
+  const legacyRemainder=Math.max(0,Number(x.purchase||0)-categorized);
+  purchaseUncategorized.value=(x.purchaseUncategorized!==undefined?Number(x.purchaseUncategorized||0):legacyRemainder)||'';
+  document.querySelectorAll('[data-purchase-cat]').forEach(el=>el.addEventListener('input',updatePurchaseCategoryTotal));
+  purchaseUncategorized.oninput=updatePurchaseCategoryTotal;
+  updatePurchaseCategoryTotal();
+}
+function updatePurchaseCategoryTotal(){
+  let total=Number(purchaseUncategorized?.value||0);
+  document.querySelectorAll('[data-purchase-cat]').forEach(el=>total+=Number(el.value||0));
+  purchase.value=total||'';
+  if(purchaseCategoryTotal)purchaseCategoryTotal.textContent=yen(total);
+  return total;
+}
+function currentPurchaseEntry(){
+  const cats=activePurchaseCategories();
+  if(!cats.length)return {purchase:num('purchase'),purchaseBreakdown:{},purchaseUncategorized:0};
+  const breakdown={};let total=0;
+  cats.forEach(c=>{const el=$('purchaseCat'+c.i);const v=Number(el?.value||0);breakdown[c.i]=v;total+=v;});
+  const unc=Number(purchaseUncategorized?.value||0);total+=unc;
+  return {purchase:total,purchaseBreakdown:breakdown,purchaseUncategorized:unc};
+}
+function renderPurchaseBreakdown(month){
+  if(!purchaseBreakdownSummary)return;
+  const slots=purchaseCategorySlots();
+  const sums=Array(10).fill(0);let unc=0,total=0;
+  daysForMonth(month).forEach(([,d])=>{
+    const b=d.purchaseBreakdown||{};
+    Object.keys(b).forEach(k=>{const i=Number(k);if(i>=0&&i<10)sums[i]+=Number(b[k]||0);});
+    const catSum=Object.values(b).reduce((a,v)=>a+Number(v||0),0);
+    const u=(d.purchaseUncategorized!==undefined)?Number(d.purchaseUncategorized||0):Math.max(0,Number(d.purchase||0)-catSum);
+    unc+=u; total+=Number(d.purchase||0);
+  });
+  const rows=[];
+  sums.forEach((v,i)=>{if(v>0)rows.push([slots[i]||('カテゴリ'+(i+1)),v]);});
+  if(unc>0)rows.push(['その他・未分類',unc]);
+  if(!rows.length){purchaseBreakdownSummary.innerHTML='<div class="small">カテゴリ別の仕入を入力すると、ここに内訳が表示されます。</div>';return;}
+  purchaseBreakdownSummary.innerHTML=rows.map(([name,v])=>'<div class="purchase-breakdown-row"><span>'+escapeHtml(name)+' <span class="small">'+(total>0?'('+((v/total)*100).toFixed(1)+'%)':'')+'</span></span><b>'+yen(v)+'</b></div>').join('')+'<div class="purchase-breakdown-row" style="font-weight:900"><span>合計</span><b>'+yen(total)+'</b></div>';
+}
+function updateGettingStarted(){if(gettingStartedCard)gettingStartedCard.style.display=Object.keys(state.days||{}).length?'none':'block';}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function loadDayForm(d){
   const x=state.days[d]||{};
-  ['cash','card','qr','other','customers','purchase','laborDay','waste'].forEach(id=>document.getElementById(id).value=x[id]||'');
+  ['cash','card','qr','other','customers','laborDay','waste'].forEach(id=>document.getElementById(id).value=x[id]||'');
+  renderPurchaseEntry(x);
   memo.value=x.memo||'';
   todayTotal.textContent=yen(dayTotal(x));
 }
@@ -895,6 +1030,8 @@ function renderWeeklySalesChart(){
   const ok=vals.some(v=>v>0);
   box.style.display=ok?'block':'none'; empty.style.display=ok?'none':'flex';
   if(!ok){box.innerHTML='';return;}
+  const total=vals.reduce((a,v)=>a+v,0);
+  const t=$('weeklySalesTotal');if(t)t.textContent='今月合計 '+yen(total);
   const max=Math.max(...vals,1);
   box.innerHTML='<div class="native-bars">'+vals.map((v,i)=>{
     const h=Math.max(3,Math.round((v/max)*112));
@@ -921,6 +1058,8 @@ function renderMonthlySalesChart(){
     if(map[k]!==undefined)list[map[k]].value+=salesOfDay(row);
   });
 
+  const total6=list.reduce((a,x)=>a+x.value,0);
+  const mt=$('monthlySalesTotal');if(mt)mt.textContent='表示6か月合計 '+yen(total6);
   const ok=list.some(x=>x.value>0);
   box.style.display=ok?'block':'none';
   empty.style.display=ok?'none':'flex';
@@ -998,6 +1137,7 @@ function renderExpensePieChart(){
   ].filter(x=>x[1]>0);
 
   const total=data.reduce((a,x)=>a+x[1],0);
+  const et=$('expenseTotal');if(et)et.textContent='今月の支出合計（借入返済を除く） '+yen(total);
   const ok=total>0;
 
   box.style.display=ok?'block':'none';
@@ -1023,7 +1163,7 @@ function renderExpensePieChart(){
 
   box.innerHTML=
     '<div class="native-donut-wrap">'+
-      '<div class="native-donut" style="background:conic-gradient('+stops.join(',')+')"></div>'+
+      '<div class="native-donut-box"><div class="native-donut" style="background:conic-gradient('+stops.join(',')+')"></div><div class="native-donut-center"><span>支出合計</span><b>'+yen(total)+'</b></div></div>'+
       '<div class="native-legend">'+
         data.map((x,i)=>{
           const pct=(x[1]/total*100);
@@ -1044,6 +1184,7 @@ function renderHomeCharts(){
 }
 
 function renderHome(){
+  updateGettingStarted();
   updateTaxModeLabels();
   const s=currentForecast(), goal=state.settings.goal, ratio=goal ? s.sales/goal*100 : 0;
   monthSales.textContent=yen(s.sales);
@@ -1308,12 +1449,16 @@ function renderAnalysis(){
 }));
 saveDay.onclick=()=>{
   const d=date.value; if(!d) return alert('日付を選んでください');
+  const wasFirst=Object.keys(state.days||{}).length===0;
+  const pEntry=currentPurchaseEntry();
   state.days[d]={
     cash:num('cash'),card:num('card'),qr:num('qr'),other:num('other'),
-    customers:num('customers'),purchase:num('purchase'),laborDay:num('laborDay'),
+    customers:num('customers'),purchase:pEntry.purchase,purchaseBreakdown:pEntry.purchaseBreakdown,purchaseUncategorized:pEntry.purchaseUncategorized,laborDay:num('laborDay'),
     waste:num('waste'),memo:memo.value
   };
-  persist(); renderHome(); renderAnalysis(); renderRecent(); showToast('保存しました');
+  persist(); renderHome(); renderAnalysis(); renderRecent();
+  if(wasFirst){setScreen('home');showToast('保存しました。ホームで結果を確認できます');}
+  else showToast('保存しました');
 };
 saveMonthly.onclick=()=>{
   const m=analysisMonth.value;
@@ -1364,12 +1509,17 @@ function loadSettingsUI(){
   if($('taxIncluded')) $('taxIncluded').checked=mode==='included';
   if($('taxExcluded')) $('taxExcluded').checked=mode==='excluded';
   updateTaxModeLabels();
+  renderPurchaseCategorySettings();
 }
 saveSettings.onclick=()=>{
+  const firstSetup=Object.keys(state.days||{}).length===0;
   ['goal','monthlyOpenDays','targetCostRate','targetLaborRate'].forEach(k=>state.settings[k]=num(k));
   state.settings.taxMode=($('taxExcluded')&&$('taxExcluded').checked)?'excluded':'included';
+  state.settings.purchaseCategories=Array.from({length:10},(_,i)=>String($('purchaseCatName'+i)?.value||'').trim());
   updateTaxModeLabels();
-  persist(); renderHome(); renderAnalysis(); showToast('設定を保存しました');
+  persist(); renderPurchaseCategorySettings(); renderHome(); renderAnalysis();
+  if(firstSetup){setScreen('daily');loadDayForm(date.value);showToast('設定OK。次に今日の数字を入力しましょう');}
+  else{loadDayForm(date.value);showToast('設定を保存しました');}
 };
 replayIntro.onclick=()=>{
   state.meta.introVersion=0;
@@ -1378,13 +1528,14 @@ replayIntro.onclick=()=>{
 };
 startApp.onclick=()=>{
   state.meta.seenIntro=true;
-  state.meta.introVersion=2;
+  state.meta.introVersion=3;
   persist();
-  showAppHome();
+  setScreen('settings');
+  showToast('まずお店の設定から始めます');
 };
 toggleGuide.onclick=()=>{
   guideSteps.classList.toggle('show');
-  toggleGuide.textContent=guideSteps.classList.contains('show') ? '使い方を閉じる' : '使い方を見る';
+  toggleGuide.textContent=guideSteps.classList.contains('show') ? '使い方を閉じる' : '使い方を詳しく見る';
 };
 date.onchange=()=>loadDayForm(date.value);
 analysisMonth.onchange=renderAnalysis;
@@ -1421,6 +1572,7 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>setScreen(b.dataset.s
 document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>setScreen(b.dataset.jump));
 
 loadSettingsUI();
+renderPurchaseCategorySettings();
 renderHome();
 renderAnalysis();
 renderRecent();
