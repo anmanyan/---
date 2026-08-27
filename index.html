@@ -172,11 +172,11 @@ th:first-child,td:first-child{text-align:left}
 }
 
 .monthly-value-row{display:flex;justify-content:space-between;gap:4px;margin-top:-4px;padding:0 6px}
-.monthly-value-row span{flex:1;text-align:center;font-size:9px;color:var(--sub);white-space:nowrap}
+.monthly-value-row span{flex:1;text-align:center;font-size:7px;color:var(--sub);white-space:nowrap;letter-spacing:-.2px}
 
 
-.annual-chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:6px;padding-bottom:4px}
-.annual-chart-inner{min-width:640px}
+.annual-chart-scroll{overflow:hidden;margin-top:6px;padding-bottom:4px}
+.annual-chart-inner{width:100%;min-width:0}
 .annual-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:8px 0 2px;font-size:11px;color:var(--sub)}
 .legend-line{display:inline-flex;align-items:center;gap:6px}.legend-line::before{content:"";width:20px;height:3px;border-radius:99px;background:#111827}.legend-line.goal::before{height:2px;background:#f59e0b}
 .annual-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.annual-summary-item{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px}.annual-summary-item span{display:block;font-size:10px;color:var(--sub)}.annual-summary-item b{display:block;margin-top:4px;font-size:14px;color:#0f234d}
@@ -1144,7 +1144,7 @@ function renderMonthlySalesChart(){
   box.style.display=hasAny?'block':'none';empty.style.display=hasAny?'none':'flex';
   if(!hasAny){box.innerHTML='';return;}
 
-  const w=620,h=150,padX=26,padTop=14,padBottom=24;
+  const w=360,h=150,padX=12,padTop=14,padBottom=24;
   const max=Math.max(...list.flatMap(x=>[x.value,x.goal]),1);
   const xAt=i=>padX+i*((w-padX*2)/(list.length-1));
   const yAt=v=>h-padBottom-(v/max)*(h-padTop-padBottom);
@@ -1166,7 +1166,7 @@ function renderMonthlySalesChart(){
   const best=entered.length?entered.reduce((a,b)=>b.value>a.value?b:a):null;
   const avg=entered.length?Math.round(total/entered.length):0;
   if($('yearSalesTotal'))$('yearSalesTotal').textContent=yen(total);
-  if($('yearGoalMonths'))$('yearGoalMonths').textContent=achieved+' / 12か月';
+  if($('yearGoalMonths'))$('yearGoalMonths').textContent=achieved+' / '+entered.length+'か月（実績入力月）';
   if($('yearMonthlyAvg'))$('yearMonthlyAvg').textContent=yen(avg);
   if($('yearBestMonth'))$('yearBestMonth').textContent=best?best.label+' '+yen(best.value):'--';
 }
