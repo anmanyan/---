@@ -439,6 +439,14 @@ th:first-child,td:first-child{text-align:left}
     </div>
     <div class="card hero"><div class="label">今日の売上合計</div><div class="value" id="todayTotal">¥0</div></div>
     <div class="card">
+      <div class="section-title">今日の利益目安</div>
+      <div class="summaryline"><div class="summarylabel"><span>今日の利益目安</span><span class="summaryhelp">売上 − 今日の仕入 − 今日の人件費 − ロス</span></div><b id="dailyProfit">¥0</b></div>
+      <div class="small" style="margin-top:6px">月末在庫や月額経費を確定する前の、日々の経営管理用の目安です。</div>
+      <div class="hr"></div>
+      <div class="summaryline"><div class="summarylabel"><span>固定費まで含めた参考利益</span><span class="summaryhelp">月額経費を想定営業日数で日割りして差し引き</span></div><b id="dailyProfitFixed">--</b></div>
+      <div class="small" id="dailyFixedNote">固定費を設定すると表示します。借入返済は含みません。</div>
+    </div>
+    <div class="card">
       <div class="section-title">最近の入力</div>
       <div id="recentDays"></div>
     </div>
@@ -743,6 +751,9 @@ const mOtherMonthlyCost=$('mOtherMonthlyCost');
 const mLoan=$('mLoan');
 const monthlyAdvice=$('monthlyAdvice');
 const todayTotal=$('todayTotal');
+const dailyProfit=$('dailyProfit');
+const dailyProfitFixed=$('dailyProfitFixed');
+const dailyFixedNote=$('dailyFixedNote');
 const saveDay=$('saveDay');
 const memo=$('memo');
 const customers=$('customers');
@@ -1055,6 +1066,7 @@ function updatePurchaseCategoryTotal(){
   document.querySelectorAll('[data-purchase-cat]').forEach(el=>total+=parseNum(el.value||0));
   purchase.value=total||'';
   if(purchaseCategoryTotal)purchaseCategoryTotal.textContent=yen(total);
+  if(typeof updateDailyProfitPreview==='function')updateDailyProfitPreview();
   return total;
 }
 function currentPurchaseEntry(){
@@ -1084,12 +1096,35 @@ function renderPurchaseBreakdown(month){
 }
 function updateGettingStarted(){if(gettingStartedCard)gettingStartedCard.style.display=Object.keys(state.days||{}).length?'none':'block';}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function updateDailyProfitPreview(){
+  if(!dailyProfit||!dailyProfitFixed)return;
+  const sales=num('cash')+num('card')+num('qr')+num('other');
+  const purchaseNow=currentPurchaseEntry().purchase;
+  const laborNow=num('laborDay');
+  const wasteNow=num('waste');
+  const simpleProfit=sales-purchaseNow-laborNow-wasteNow;
+  dailyProfit.textContent=yen(simpleProfit);
+
+  const d=date.value;
+  const month=d?d.slice(0,7):ym(today);
+  const monthlyFixed=monthlyCostDetail(month).total;
+  if(monthlyFixed>0){
+    const openDays=openDaysForMonth(month);
+    const fixedPerDay=monthlyFixed/openDays;
+    dailyProfitFixed.textContent=yen(simpleProfit-fixedPerDay);
+    dailyFixedNote.textContent=`月額経費 ${yen(monthlyFixed)} ÷ 想定${openDays}営業日（1日あたり約${yen(fixedPerDay)}）を差し引いた参考値です。借入返済は含みません。`;
+  }else{
+    dailyProfitFixed.textContent='--';
+    dailyFixedNote.textContent='固定費を設定すると表示します。借入返済は含みません。';
+  }
+}
 function loadDayForm(d){
   const x=state.days[d]||{};
   ['cash','card','qr','other','customers','laborDay','waste'].forEach(id=>document.getElementById(id).value=x[id]||'');
   renderPurchaseEntry(x);
   memo.value=x.memo||'';
   todayTotal.textContent=yen(dayTotal(x));
+  updateDailyProfitPreview();
   setTimeout(refreshMoneyInputFormats,0);
 }
 function renderRecent(){
@@ -1568,8 +1603,10 @@ function renderAnalysis(){
 }
 
 ['cash','card','qr','other'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
-  todayTotal.textContent=yen(num('cash')+num('card')+num('qr')+num('other'))
+  todayTotal.textContent=yen(num('cash')+num('card')+num('qr')+num('other'));
+  updateDailyProfitPreview();
 }));
+['purchase','laborDay','waste'].forEach(id=>document.getElementById(id).addEventListener('input',updateDailyProfitPreview));
 saveDay.onclick=()=>{
   const d=date.value; if(!d) return alert('日付を選んでください');
   const wasFirst=Object.keys(state.days||{}).length===0;
